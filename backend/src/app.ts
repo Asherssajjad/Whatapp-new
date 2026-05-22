@@ -25,8 +25,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'x-org-id'],
   optionsSuccessStatus: 200,
 }));
-// Handle preflight for all routes
-app.options('*', cors());
+// Handle preflight for all routes (Express 5 requires regex, not '*')
+app.options(/(.*)/, cors());
 
 // Rate limiting (skip webhook)
 app.use(
