@@ -177,7 +177,8 @@ async function processMessage(
       // non-critical
     }
   } else {
-    textContent = `[${msg.type} message]`;
+    const unknownMsg = msg as { type?: string };
+    textContent = `[${unknownMsg.type ?? 'unknown'} message]`;
   }
 
   // Save inbound message

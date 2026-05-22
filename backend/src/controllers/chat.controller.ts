@@ -38,8 +38,9 @@ export async function getContacts(req: AuthRequest, res: Response): Promise<void
 
 export async function getContact(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
+  const phone = String(req.params['phone']);
   const contact = await prisma.contact.findUnique({
-    where: { phone_organizationId: { phone: req.params['phone']!, organizationId: orgId } },
+    where: { phone_organizationId: { phone, organizationId: orgId } },
     include: {
       tags: { include: { tag: true } },
       conversations: { orderBy: { createdAt: 'desc' }, take: 1 },
@@ -52,7 +53,7 @@ export async function getContact(req: AuthRequest, res: Response): Promise<void>
 
 export async function getMessages(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
-  const phone = req.params['phone']!;
+  const phone = String(req.params['phone']);
   const { page = '1', limit = '50' } = req.query;
 
   const conversation = await prisma.conversation.findFirst({
@@ -97,7 +98,6 @@ export async function sendManualMessage(req: AuthRequest, res: Response): Promis
   const wa = createWAService(waNumber);
   await wa.sendText({ to: phone, body: message });
 
-  // Disable AI when agent takes over
   await prisma.contact.update({
     where: { id: contact.id },
     data: { aiEnabled: false, lastMessageText: message.slice(0, 255), lastMessageAt: new Date() },
@@ -148,10 +148,10 @@ export async function sendManualMessage(req: AuthRequest, res: Response): Promis
 
 export async function toggleAI(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
-  const { phone } = req.params;
+  const phone = String(req.params['phone']);
 
   const contact = await prisma.contact.findUnique({
-    where: { phone_organizationId: { phone: phone!, organizationId: orgId } },
+    where: { phone_organizationId: { phone, organizationId: orgId } },
   });
   if (!contact) { res.status(404).json({ error: 'Contact not found' }); return; }
 
@@ -160,31 +160,31 @@ export async function toggleAI(req: AuthRequest, res: Response): Promise<void> {
     data: { aiEnabled: !contact.aiEnabled },
   });
 
-  getIO().to(orgId).emit('contact:updated', { phone: phone!, organizationId: orgId, changes: { aiEnabled: updated.aiEnabled } });
+  getIO().to(orgId).emit('contact:updated', { phone, organizationId: orgId, changes: { aiEnabled: updated.aiEnabled } });
   res.json({ aiEnabled: updated.aiEnabled });
 }
 
 export async function deleteContact(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
-  const { phone } = req.params;
+  const phone = String(req.params['phone']);
 
   await prisma.contact.delete({
-    where: { phone_organizationId: { phone: phone!, organizationId: orgId } },
+    where: { phone_organizationId: { phone, organizationId: orgId } },
   });
 
-  getIO().to(orgId).emit('contact:deleted', { phone: phone!, organizationId: orgId });
+  getIO().to(orgId).emit('contact:deleted', { phone, organizationId: orgId });
   res.json({ message: 'Contact deleted' });
 }
 
 export async function updateContact(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
-  const { phone } = req.params;
+  const phone = String(req.params['phone']);
   const { name, notes, status, email } = req.body as {
     name?: string; notes?: string; status?: string; email?: string;
   };
 
   const updated = await prisma.contact.update({
-    where: { phone_organizationId: { phone: phone!, organizationId: orgId } },
+    where: { phone_organizationId: { phone, organizationId: orgId } },
     data: { name, notes, email, ...(status && { status: status as never }) },
   });
 
@@ -227,7 +227,6 @@ export async function getAnalytics(req: AuthRequest, res: Response): Promise<voi
       orderBy: { contacts: { _count: 'desc' } },
       take: 5,
     }),
-    // Messages per day last 7 days — simple version
     prisma.message.groupBy({
       by: ['direction'],
       where: { conversation: { organizationId: orgId }, createdAt: { gte: last7 } },

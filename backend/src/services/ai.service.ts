@@ -199,12 +199,12 @@ async function executeTool(
 
   switch (toolCall.function.name) {
     case 'update_contact_profile': {
+      const updateData: { name?: string; email?: string } = {};
+      if (args['name']) updateData.name = String(args['name']);
+      if (args['email']) updateData.email = String(args['email']);
       await prisma.contact.update({
         where: { phone_organizationId: { phone: contactPhone, organizationId } },
-        data: {
-          ...(args['name'] && { name: String(args['name']) }),
-          ...(args['email'] && { email: String(args['email']) }),
-        },
+        data: updateData,
       });
       getIO().to(organizationId).emit('contact:updated', { phone: contactPhone, organizationId, changes: args });
       return `Profile updated: ${JSON.stringify(args)}`;
@@ -324,13 +324,27 @@ export async function generateAIResponse(
   }
 ): Promise<string | null> {
   // Build knowledge context
-  const lastUserMessage = ctx.messageHistory.findLast(m => m.role === 'user')?.content ?? '';
+  const histCopy = [...ctx.messageHistory];
+  const lastUserMsg = histCopy.reverse().find(m => m.role === 'user');
+  const lastUserMessage = lastUserMsg?.content ?? '';
   const knowledgeContext = await buildKnowledgeContext(
     typeof lastUserMessage === 'string' ? lastUserMessage : '',
     ctx.organizationId
   );
 
-  const fullCtx: AIContext = { ...ctx, knowledgeContext };
+  const fullCtx: AIContext = {
+    organizationId: ctx.organizationId,
+    phoneNumberId: ctx.phoneNumberId,
+    contactPhone: ctx.contactPhone,
+    contactName: ctx.contactName,
+    messageHistory: ctx.messageHistory,
+    knowledgeContext,
+    agentList: ctx.agentList,
+    socialLinks: ctx.socialLinks,
+    businessType: ctx.businessType,
+    specialInstructions: ctx.specialInstructions,
+    isAgentMode: ctx.isAgentMode,
+  };
   const systemPrompt = buildSystemPrompt(fullCtx);
 
   const waService = createWAService(ctx.waNumber);

@@ -24,7 +24,6 @@ export async function ingestURL(req: AuthRequest, res: Response): Promise<void> 
 
   if (!url) { res.status(400).json({ error: 'URL required' }); return; }
 
-  // Fetch and parse
   const response = await axios.get(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; WhatsappBot/2.0)' },
     timeout: 15000,
@@ -73,13 +72,15 @@ export async function ingestManual(req: AuthRequest, res: Response): Promise<voi
 
 export async function deleteKnowledge(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
-  await prisma.knowledge.deleteMany({ where: { id: req.params['id']!, organizationId: orgId } });
+  const id = String(req.params['id']);
+  await prisma.knowledge.deleteMany({ where: { id, organizationId: orgId } });
   res.json({ message: 'Deleted' });
 }
 
 export async function toggleKnowledge(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
-  const knowledge = await prisma.knowledge.findFirst({ where: { id: req.params['id']!, organizationId: orgId } });
+  const id = String(req.params['id']);
+  const knowledge = await prisma.knowledge.findFirst({ where: { id, organizationId: orgId } });
   if (!knowledge) { res.status(404).json({ error: 'Not found' }); return; }
 
   const updated = await prisma.knowledge.update({

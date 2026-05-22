@@ -29,7 +29,7 @@ export async function login(req: Request, res: Response): Promise<void> {
   const token = jwt.sign(
     { userId: user.id, organizationId: user.organizationId, role: user.role },
     config.jwt.secret,
-    { expiresIn: config.jwt.expiresIn }
+    { expiresIn: config.jwt.expiresIn as never }
   );
 
   const refreshToken = uuidv4();
@@ -72,7 +72,7 @@ export async function refreshToken(req: Request, res: Response): Promise<void> {
   const newToken = jwt.sign(
     { userId: stored.user.id, organizationId: stored.user.organizationId, role: stored.user.role },
     config.jwt.secret,
-    { expiresIn: config.jwt.expiresIn }
+    { expiresIn: config.jwt.expiresIn as never }
   );
 
   res.json({ token: newToken });

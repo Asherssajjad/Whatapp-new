@@ -27,13 +27,14 @@ export async function createOrganization(req: AuthRequest, res: Response): Promi
 }
 
 export async function updateOrganization(req: AuthRequest, res: Response): Promise<void> {
+  const id = String(req.params['id']);
   const { name, businessType, websiteUrl, specialInstructions, messageLimit } = req.body as {
     name?: string; businessType?: string; websiteUrl?: string;
     specialInstructions?: string; messageLimit?: number;
   };
 
   const org = await prisma.organization.update({
-    where: { id: req.params['id']! },
+    where: { id },
     data: { name, ...(businessType && { businessType: businessType as never }), websiteUrl, specialInstructions, messageLimit },
   });
 
@@ -41,15 +42,16 @@ export async function updateOrganization(req: AuthRequest, res: Response): Promi
 }
 
 export async function deleteOrganization(req: AuthRequest, res: Response): Promise<void> {
-  await prisma.organization.delete({ where: { id: req.params['id']! } });
+  const id = String(req.params['id']);
+  await prisma.organization.delete({ where: { id } });
   res.json({ message: 'Organization deleted' });
 }
 
 export async function getUsers(req: AuthRequest, res: Response): Promise<void> {
-  const { organizationId } = req.query;
+  const organizationId = req.query['organizationId'] ? String(req.query['organizationId']) : undefined;
 
   const users = await prisma.user.findMany({
-    where: organizationId ? { organizationId: String(organizationId) } : undefined,
+    where: organizationId ? { organizationId } : undefined,
     omit: { password: true },
     include: { organization: { select: { id: true, name: true } } },
     orderBy: { createdAt: 'desc' },
@@ -76,7 +78,8 @@ export async function createUser(req: AuthRequest, res: Response): Promise<void>
 }
 
 export async function deleteUser(req: AuthRequest, res: Response): Promise<void> {
-  await prisma.user.delete({ where: { id: req.params['id']! } });
+  const id = String(req.params['id']);
+  await prisma.user.delete({ where: { id } });
   res.json({ message: 'User deleted' });
 }
 

@@ -90,15 +90,16 @@ export async function runCampaign(campaignId: string): Promise<void> {
   });
 
   const filters = (campaign.filters as Record<string, unknown>) ?? {};
+  const contactWhere: Record<string, unknown> = {
+    organizationId: campaign.organizationId,
+    optedOut: false,
+    status: 'ACTIVE',
+  };
+  if (filters['tags']) {
+    contactWhere['tags'] = { some: { tag: { name: { in: filters['tags'] as string[] } } } };
+  }
   const contacts = await prisma.contact.findMany({
-    where: {
-      organizationId: campaign.organizationId,
-      optedOut: false,
-      status: 'ACTIVE',
-      ...(filters['tags'] && {
-        tags: { some: { tag: { name: { in: filters['tags'] as string[] } } } },
-      }),
-    },
+    where: contactWhere,
     take: 1000,
   });
 
@@ -149,7 +150,7 @@ export async function runAutomations(
 
     for (const automation of automations) {
       try {
-        const actions = automation.actions as AutomationAction[];
+        const actions = automation.actions as unknown as AutomationAction[];
         await executeActions(actions, organizationId, data);
         await prisma.automation.update({
           where: { id: automation.id },

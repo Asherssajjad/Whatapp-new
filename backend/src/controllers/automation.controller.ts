@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { runCampaign } from '../services/automation.service';
 import type { AuthRequest } from '../types';
@@ -22,7 +23,14 @@ export async function createAutomation(req: AuthRequest, res: Response): Promise
   };
 
   const automation = await prisma.automation.create({
-    data: { name, description, trigger: trigger as never, triggerData, actions, organizationId: orgId },
+    data: {
+      name,
+      description,
+      trigger: trigger as never,
+      triggerData: triggerData as Prisma.InputJsonValue ?? Prisma.JsonNull,
+      actions: actions as Prisma.InputJsonValue,
+      organizationId: orgId,
+    },
   });
 
   res.status(201).json(automation);
@@ -30,14 +38,22 @@ export async function createAutomation(req: AuthRequest, res: Response): Promise
 
 export async function updateAutomation(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
+  const id = String(req.params['id']);
   const { name, description, trigger, triggerData, actions, isActive } = req.body as {
     name?: string; description?: string; trigger?: string;
     triggerData?: Record<string, unknown>; actions?: unknown[]; isActive?: boolean;
   };
 
   const updated = await prisma.automation.updateMany({
-    where: { id: req.params['id']!, organizationId: orgId },
-    data: { name, description, ...(trigger && { trigger: trigger as never }), triggerData, actions, isActive },
+    where: { id, organizationId: orgId },
+    data: {
+      name,
+      description,
+      ...(trigger && { trigger: trigger as never }),
+      ...(triggerData !== undefined && { triggerData: triggerData as Prisma.InputJsonValue }),
+      ...(actions !== undefined && { actions: actions as Prisma.InputJsonValue }),
+      ...(isActive !== undefined && { isActive }),
+    },
   });
 
   if (updated.count === 0) { res.status(404).json({ error: 'Not found' }); return; }
@@ -46,7 +62,8 @@ export async function updateAutomation(req: AuthRequest, res: Response): Promise
 
 export async function deleteAutomation(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
-  await prisma.automation.deleteMany({ where: { id: req.params['id']!, organizationId: orgId } });
+  const id = String(req.params['id']);
+  await prisma.automation.deleteMany({ where: { id, organizationId: orgId } });
   res.json({ message: 'Deleted' });
 }
 
@@ -73,7 +90,7 @@ export async function createCampaign(req: AuthRequest, res: Response): Promise<v
       message,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
       status: scheduledAt ? 'SCHEDULED' : 'DRAFT',
-      filters,
+      ...(filters !== undefined && { filters: filters as Prisma.InputJsonValue }),
       organizationId: orgId,
     },
   });
@@ -83,21 +100,22 @@ export async function createCampaign(req: AuthRequest, res: Response): Promise<v
 
 export async function launchCampaign(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
-  const campaign = await prisma.campaign.findFirst({ where: { id: req.params['id']!, organizationId: orgId } });
+  const id = String(req.params['id']);
+  const campaign = await prisma.campaign.findFirst({ where: { id, organizationId: orgId } });
   if (!campaign) { res.status(404).json({ error: 'Campaign not found' }); return; }
   if (!['DRAFT', 'SCHEDULED'].includes(campaign.status)) {
     res.status(400).json({ error: 'Campaign cannot be launched in current state' });
     return;
   }
 
-  // Run in background
   void runCampaign(campaign.id);
   res.json({ message: 'Campaign launched' });
 }
 
 export async function deleteCampaign(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
-  await prisma.campaign.deleteMany({ where: { id: req.params['id']!, organizationId: orgId } });
+  const id = String(req.params['id']);
+  await prisma.campaign.deleteMany({ where: { id, organizationId: orgId } });
   res.json({ message: 'Deleted' });
 }
 
@@ -131,10 +149,11 @@ export async function addAgent(req: AuthRequest, res: Response): Promise<void> {
 
 export async function updateAgent(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
+  const id = String(req.params['id']);
   const { name, phone, isAvailable } = req.body as { name?: string; phone?: string; isAvailable?: boolean };
 
   await prisma.agent.updateMany({
-    where: { id: req.params['id']!, organizationId: orgId },
+    where: { id, organizationId: orgId },
     data: { name, phone, isAvailable },
   });
 
@@ -143,6 +162,7 @@ export async function updateAgent(req: AuthRequest, res: Response): Promise<void
 
 export async function deleteAgent(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
-  await prisma.agent.deleteMany({ where: { id: req.params['id']!, organizationId: orgId } });
+  const id = String(req.params['id']);
+  await prisma.agent.deleteMany({ where: { id, organizationId: orgId } });
   res.json({ message: 'Deleted' });
 }
