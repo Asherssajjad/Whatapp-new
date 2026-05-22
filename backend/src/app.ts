@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { config } from './config';
 import router from './routes';
 import { errorHandler } from './middleware/errorHandler';
 
