@@ -25,16 +25,15 @@ async function bootstrap(): Promise<void> {
       console.warn('⚠️  pgvector unavailable — keyword search fallback active');
     }
 
-    // 3. Seed super admin
+    // 3. Seed super admin — upsert so env var changes always take effect
     try {
-      const existing = await prisma.user.findUnique({ where: { email: config.admin.email } });
-      if (!existing) {
-        const hashed = await bcrypt.hash(config.admin.password, 12);
-        await prisma.user.create({
-          data: { email: config.admin.email, password: hashed, name: config.admin.name, role: 'SUPER_ADMIN' },
-        });
-        console.log(`✅ Super admin created: ${config.admin.email}`);
-      }
+      const hashed = await bcrypt.hash(config.admin.password, 12);
+      await prisma.user.upsert({
+        where: { email: config.admin.email },
+        update: { password: hashed, name: config.admin.name },
+        create: { email: config.admin.email, password: hashed, name: config.admin.name, role: 'SUPER_ADMIN' },
+      });
+      console.log(`✅ Super admin ready: ${config.admin.email}`);
     } catch (err) {
       console.warn('⚠️  Admin seed failed:', err);
     }
