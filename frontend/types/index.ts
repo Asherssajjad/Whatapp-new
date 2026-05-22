@@ -119,6 +119,7 @@ export interface Analytics {
   appointmentsToday: number;
   topTagsByContact: Array<{ name: string; count: number; color: string }>;
   contactGrowth: Array<{ createdAt: string; _count: number }>;
+  messageDirectionBreakdown: Array<{ direction: string; _count: number }>;
 }
 
 export interface PaginatedResult<T> {
