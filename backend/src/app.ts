@@ -1,5 +1,4 @@
-import express from 'express';
-import cors from 'cors';
+import express, { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config } from './config';
@@ -8,25 +7,30 @@ import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 
-// Security
+// ─── Manual CORS (most reliable, bypasses cors package quirks) ─────────────────
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin ?? '';
+  const allowed = config.cors.origins;
+
+  if (allowed.includes('*') || allowed.includes(origin) || !origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-org-id,Accept');
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
+
+  // Respond to preflight immediately
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  next();
+});
+
+// Security (after CORS so headers aren't overwritten)
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors({
-  origin: (origin, callback) => {
-    const allowed = config.cors.origins;
-    // allow if no origin (server-to-server), wildcard, or explicit match
-    if (!origin || allowed.includes('*') || allowed.some(o => o === origin)) {
-      callback(null, true);
-    } else {
-      callback(null, false);
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-org-id'],
-  optionsSuccessStatus: 200,
-}));
-// Handle preflight for all routes (Express 5 requires regex, not '*')
-app.options(/(.*)/, cors());
 
 // Rate limiting (skip webhook)
 app.use(
@@ -42,7 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api', router);
 
-// Webhook at root (Meta sends to /webhook)
+// Webhook at root
 app.get('/webhook', (req, res) => { void import('./controllers/webhook.controller').then(m => m.verifyWebhook(req, res)); });
 app.post('/webhook', (req, res) => { void import('./controllers/webhook.controller').then(m => m.handleIncomingMessage(req, res)); });
 
