@@ -1,42 +1,25 @@
 import express, { Request, Response, NextFunction } from 'express';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import router from './routes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 
-// ─── Manual CORS (most reliable, bypasses cors package quirks) ─────────────────
+// ─── CORS — must be first, no conditions ──────────────────────────────────────
 app.use((req: Request, res: Response, next: NextFunction) => {
-  const origin = req.headers.origin ?? '';
-  const allowed = config.cors.origins;
+  const origin = req.headers.origin ?? '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin,Content-Type,Accept,Authorization,x-org-id');
+  res.setHeader('Access-Control-Max-Age', '86400');
 
-  if (allowed.includes('*') || allowed.includes(origin) || !origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-org-id,Accept');
-    res.setHeader('Access-Control-Max-Age', '86400');
-  }
-
-  // Respond to preflight immediately
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
-
   next();
 });
-
-// Security (after CORS so headers aren't overwritten)
-app.use(helmet({ crossOriginResourcePolicy: false }));
-
-// Rate limiting (skip webhook)
-app.use(
-  /^(?!\/webhook)/,
-  rateLimit({ windowMs: 15 * 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false })
-);
 
 // Body parsing
 app.use('/webhook', express.raw({ type: 'application/json' }));
