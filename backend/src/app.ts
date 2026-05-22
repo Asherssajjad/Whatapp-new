@@ -9,8 +9,24 @@ import { errorHandler } from './middleware/errorHandler';
 const app = express();
 
 // Security
-app.use(helmet());
-app.use(cors({ origin: config.cors.origins, credentials: true }));
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowed = config.cors.origins;
+    // allow if no origin (server-to-server), wildcard, or explicit match
+    if (!origin || allowed.includes('*') || allowed.some(o => o === origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-org-id'],
+  optionsSuccessStatus: 200,
+}));
+// Handle preflight for all routes
+app.options('*', cors());
 
 // Rate limiting (skip webhook)
 app.use(
