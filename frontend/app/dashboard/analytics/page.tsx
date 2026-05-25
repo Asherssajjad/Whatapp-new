@@ -55,7 +55,7 @@ export default function AnalyticsPage() {
         {/* Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
           {STAT_CARDS.map(card => (
-            <div key={card.key} className="bg-card border border-border rounded-xl p-4">
+            <div key={card.key} className="bg-card border border-border rounded-xl p-4 shadow-card">
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-9 h-9 ${card.bg} rounded-lg flex items-center justify-center`}>
                   <card.icon className={`w-4 h-4 ${card.color}`} />

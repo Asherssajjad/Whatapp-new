@@ -38,8 +38,8 @@ export default function ContactList() {
   return (
     <div className="flex flex-col h-full w-80 border-r border-border bg-card">
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <h2 className="font-semibold text-foreground mb-3">Conversations</h2>
+      <div className="p-4 pt-4 lg:pt-4 border-b border-border">
+        <h2 className="font-semibold text-foreground mb-3 pl-8 lg:pl-0">Conversations</h2>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
@@ -77,7 +77,7 @@ export default function ContactList() {
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto flex flex-col">
         {isLoading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -91,8 +91,18 @@ export default function ContactList() {
             ))}
           </div>
         ) : contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-            <p className="text-sm">No contacts found</p>
+          <div className="flex flex-col items-center justify-center flex-1 px-5 py-10 text-center">
+            <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-3">
+              <Filter className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-sm font-medium text-foreground mb-1">
+              {search || filter ? 'No matches found' : 'No conversations yet'}
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {search || filter
+                ? 'Try clearing the search or filter'
+                : 'WhatsApp messages will appear here automatically once your webhook is configured'}
+            </p>
           </div>
         ) : (
           contacts.map(contact => (

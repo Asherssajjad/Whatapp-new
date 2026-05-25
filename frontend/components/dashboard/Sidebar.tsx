@@ -46,9 +46,9 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside className={cn(
-        'fixed inset-y-0 left-0 z-30 w-64 bg-card border-r border-border flex flex-col transition-transform duration-200',
-        'lg:static lg:translate-x-0',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        'fixed inset-y-0 left-0 z-30 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300 ease-in-out',
+        'lg:static lg:translate-x-0 lg:shadow-[1px_0_0_0_hsl(var(--border))]',
+        sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
       )}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">

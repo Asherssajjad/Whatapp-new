@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen bg-background overflow-hidden">
       <SocketInitializer />
       <Sidebar />
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
         {children}
       </main>
       <ToastContainer />
