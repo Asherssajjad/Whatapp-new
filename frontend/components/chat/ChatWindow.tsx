@@ -53,29 +53,41 @@ export default function ChatWindow() {
 
   if (!selectedContact) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background text-center px-8">
-        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-5">
-          <Bot className="w-10 h-10 text-primary" />
+      <div className="flex-1 flex flex-col bg-background overflow-y-auto">
+        {/* Top hero */}
+        <div className="flex flex-col items-center justify-center py-16 px-8 text-center border-b border-border">
+          <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+            <Bot className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground mb-2">WhatsApp AI Dashboard</h2>
+          <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+            Select a conversation from the left to read messages and reply. Incoming WhatsApp messages appear here in real-time.
+          </p>
         </div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">WA AI Bot</h3>
-        <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-          Select a conversation from the left panel to view messages and chat history.
-        </p>
-        <div className="mt-8 grid grid-cols-2 gap-3 w-full max-w-sm text-left">
-          {[
-            { icon: Bot, label: 'GPT-4o AI', desc: 'Replies automatically' },
-            { icon: Flame, label: 'Lead Scoring', desc: 'Tracks hot prospects' },
-            { icon: AlertTriangle, label: 'Escalation', desc: 'Human takeover' },
-            { icon: CheckCheck, label: 'Read receipts', desc: 'Delivery tracking' },
-          ].map(item => (
-            <div key={item.label} className="flex items-start gap-2 p-3 bg-card rounded-xl border border-border">
-              <item.icon className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-xs font-medium text-foreground">{item.label}</p>
-                <p className="text-xs text-muted-foreground">{item.desc}</p>
+
+        {/* Feature grid — fills the space */}
+        <div className="flex-1 p-6">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">What this bot can do</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-3">
+            {[
+              { icon: Bot, label: 'GPT-4o AI Replies', desc: 'Automatically responds to customer messages using your knowledge base and AI context.', color: 'text-green-500', bg: 'bg-green-500/10' },
+              { icon: Flame, label: 'Hot Lead Detection', desc: 'Scores every contact by engagement level and flags hot prospects for your sales team.', color: 'text-orange-500', bg: 'bg-orange-500/10' },
+              { icon: AlertTriangle, label: 'Escalation to Human', desc: 'Detects when AI cannot help and instantly notifies your team to take over.', color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+              { icon: CheckCheck, label: 'Delivery & Read Tracking', desc: 'Tracks message delivery and read status for every conversation in real-time.', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+              { icon: User, label: 'Contact Management', desc: 'Full contact profiles with message history, notes, tags, and lead scoring.', color: 'text-purple-500', bg: 'bg-purple-500/10' },
+              { icon: Mic, label: 'Voice Transcription', desc: 'Automatically transcribes incoming voice messages using OpenAI Whisper.', color: 'text-pink-500', bg: 'bg-pink-500/10' },
+            ].map(item => (
+              <div key={item.label} className="flex items-start gap-3.5 p-4 bg-card rounded-xl border border-border hover:border-primary/30 transition-colors">
+                <div className={`w-9 h-9 ${item.bg} rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                  <item.icon className={`w-4 h-4 ${item.color}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground mb-0.5">{item.label}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -136,8 +148,8 @@ export default function ChatWindow() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-1 bg-background"
-        style={{ backgroundImage: 'radial-gradient(hsl(var(--border)) 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+      <div className="flex-1 overflow-y-auto p-4 space-y-1"
+        style={{ background: 'hsl(var(--background))' }}
       >
         {loadingMessages ? (
           <div className="flex items-center justify-center h-full">

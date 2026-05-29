@@ -38,8 +38,8 @@ export default function ContactList() {
   return (
     <div className="flex flex-col h-full w-80 border-r border-border bg-card">
       {/* Header */}
-      <div className="p-4 pt-4 lg:pt-4 border-b border-border">
-        <h2 className="font-semibold text-foreground mb-3 pl-8 lg:pl-0">Conversations</h2>
+      <div className="p-4 border-b border-border">
+        <h2 className="font-semibold text-foreground mb-3">Conversations</h2>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
