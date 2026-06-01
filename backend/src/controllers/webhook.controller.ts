@@ -89,17 +89,25 @@ async function processMessage(
   const waContact = contacts.find(c => c.wa_id === senderPhone);
   const senderName = waContact?.profile?.name;
 
-  // Find the WhatsApp number record
-  const waNumber = await prisma.whatsAppNumber.findUnique({
+  // Find the WhatsApp number record — try exact match first, fall back to primary
+  let waNumber = await prisma.whatsAppNumber.findUnique({
     where: { phoneNumberId },
     include: { organization: true },
   });
 
   if (!waNumber) {
-    console.warn(`[Webhook] ❌ No number found for phone_number_id="${phoneNumberId}" — check DB`);
+    console.warn(`[Webhook] ⚠️ No exact match for "${phoneNumberId}" — trying primary number`);
+    waNumber = await prisma.whatsAppNumber.findFirst({
+      where: { isPrimary: true, isActive: true },
+      include: { organization: true },
+    });
+  }
+
+  if (!waNumber) {
+    console.warn(`[Webhook] ❌ No WhatsApp number configured in DB at all`);
     return;
   }
-  console.log(`[Webhook] ✅ Matched org: ${waNumber.organization.name}`);
+  console.log(`[Webhook] ✅ Matched org: ${waNumber.organization.name} via ${waNumber.phoneNumberId}`);
 
   const { organizationId, organization } = waNumber;
   const waService = createWAService(waNumber);
