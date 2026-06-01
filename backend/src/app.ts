@@ -20,8 +20,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Body parsing
-app.use('/webhook', express.raw({ type: 'application/json' }));
+// Body parsing — webhook needs JSON parsed, not raw buffer
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
