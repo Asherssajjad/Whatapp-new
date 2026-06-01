@@ -40,7 +40,7 @@ export async function handleIncomingMessage(req: Request, res: Response): Promis
 
         const messages = value.messages ?? [];
         const contacts = value.contacts ?? [];
-        const phoneNumberId = value.metadata.phone_number_id;
+        const phoneNumberId = value.metadata.phone_number_id.trim();
 
         for (const msg of messages) {
           await processMessage(msg, contacts, phoneNumberId);

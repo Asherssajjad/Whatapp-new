@@ -62,9 +62,9 @@ export const config = {
   seed: {
     // Supports legacy names PHONE_NUMBER_ID / ACCESS_TOKEN / BUSINESS_TYPE / SPECIAL_INSTRUCTIONS
     orgName: compat('SEED_ORG_NAME', 'ORG_NAME') ?? 'My Business',
-    phoneNumberId: compat('SEED_PHONE_NUMBER_ID', 'PHONE_NUMBER_ID'),
-    accessToken: compat('SEED_ACCESS_TOKEN', 'ACCESS_TOKEN'),
-    wabaId: compat('SEED_WABA_ID', 'WABA_ID'),
+    phoneNumberId: compat('SEED_PHONE_NUMBER_ID', 'PHONE_NUMBER_ID')?.trim(),
+    accessToken: compat('SEED_ACCESS_TOKEN', 'ACCESS_TOKEN')?.trim(),
+    wabaId: compat('SEED_WABA_ID', 'WABA_ID')?.trim(),
     businessType: compat('SEED_BUSINESS_TYPE', 'BUSINESS_TYPE'),
     specialInstructions: compat('SEED_SPECIAL_INSTRUCTIONS', 'SPECIAL_INSTRUCTIONS'),
   },

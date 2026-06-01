@@ -38,6 +38,9 @@ async function bootstrap(): Promise<void> {
       console.warn('⚠️  Admin seed failed:', err);
     }
 
+    // 3b. Trim any whitespace from phoneNumberId values (env var copy-paste artifact)
+    await prisma.$executeRaw`UPDATE "WhatsAppNumber" SET "phoneNumberId" = TRIM("phoneNumberId") WHERE "phoneNumberId" != TRIM("phoneNumberId")`.catch(() => null);
+
     // 4. Seed primary organization
     if (config.seed.orgName && config.seed.phoneNumberId && config.seed.accessToken) {
       try {
