@@ -2,9 +2,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  MessageCircle, BarChart3, Users, BookOpen,
-  Zap, Settings, LogOut, Phone, Menu, X,
-  ChevronRight,
+  MessageCircle, BarChart3, BookOpen,
+  LogOut, Menu, X, ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth';
@@ -15,11 +14,7 @@ import { useRouter } from 'next/navigation';
 const navItems = [
   { href: '/dashboard', icon: MessageCircle, label: 'Chats', exact: true },
   { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
-  { href: '/dashboard/contacts', icon: Users, label: 'Contacts' },
   { href: '/dashboard/knowledge', icon: BookOpen, label: 'Knowledge' },
-  { href: '/dashboard/automation', icon: Zap, label: 'Automation' },
-  { href: '/dashboard/numbers', icon: Phone, label: 'Numbers' },
-  { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function Sidebar() {
@@ -51,12 +46,15 @@ export default function Sidebar() {
         sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+        <div className="flex items-center justify-between px-4 py-5 border-b border-border">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-green-500 rounded-xl flex items-center justify-center shadow-sm">
               <MessageCircle className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-foreground">WA AI Bot</span>
+            <div>
+              <p className="font-bold text-foreground text-sm leading-none">WhatsApp AI</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Powered by GPT-4o</p>
+            </div>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-muted-foreground hover:text-foreground">
             <X className="w-5 h-5" />
