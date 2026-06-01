@@ -3,16 +3,22 @@ dotenv.config();
 
 const optional = (key: string, fallback = ''): string => process.env[key] ?? fallback;
 
-// Warn instead of crashing so the server can still start and pass healthcheck
-const warnIfMissing = (key: string): string => {
-  const val = process.env[key];
-  if (!val) console.warn(`⚠️  Missing env var: ${key} — some features will be disabled`);
-  return val ?? '';
+const warnIfMissing = (...keys: string[]): string => {
+  for (const key of keys) {
+    const val = process.env[key];
+    if (val) return val;
+  }
+  console.warn(`⚠️  Missing env var: ${keys[0]} — some features will be disabled`);
+  return '';
 };
+
+// Reads first key found — supports both new names and old names from legacy deployment
+const compat = (newKey: string, ...oldKeys: string[]): string | undefined =>
+  [newKey, ...oldKeys].reduce<string | undefined>((found, k) => found ?? process.env[k], undefined);
 
 export const config = {
   env: optional('NODE_ENV', 'development'),
-  port: parseInt(optional('PORT', '5000'), 10),
+  port: parseInt(optional('PORT', '3000'), 10),
 
   database: {
     url: optional('DATABASE_URL'),
@@ -26,7 +32,8 @@ export const config = {
   },
 
   openai: {
-    apiKey: warnIfMissing('OPENAI_API_KEY'),
+    // Supports legacy name APP_AI_TOKEN used by old deployment
+    apiKey: warnIfMissing('OPENAI_API_KEY', 'APP_AI_TOKEN'),
     model: optional('OPENAI_MODEL', 'gpt-4o'),
     embeddingModel: optional('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small'),
     whisperModel: optional('OPENAI_WHISPER_MODEL', 'whisper-1'),
@@ -41,9 +48,10 @@ export const config = {
   },
 
   admin: {
-    email: optional('ADMIN_EMAIL', 'admin@whatsappbot.com'),
-    password: optional('ADMIN_PASSWORD', 'Admin@2026!'),
-    name: optional('ADMIN_NAME', 'Super Admin'),
+    // Falls back to legacy hardcoded credentials if env vars not set
+    email: optional('ADMIN_EMAIL', 'ashersajjad98@gmail.com'),
+    password: optional('ADMIN_PASSWORD', 'AsherSajjad2026'),
+    name: optional('ADMIN_NAME', 'Asher Sajjad'),
     whatsapp: process.env['ADMIN_WHATSAPP'],
   },
 
@@ -52,11 +60,12 @@ export const config = {
   },
 
   seed: {
-    orgName: process.env['SEED_ORG_NAME'],
-    phoneNumberId: process.env['SEED_PHONE_NUMBER_ID'],
-    accessToken: process.env['SEED_ACCESS_TOKEN'],
-    wabaId: process.env['SEED_WABA_ID'],
-    businessType: process.env['SEED_BUSINESS_TYPE'],
-    specialInstructions: process.env['SEED_SPECIAL_INSTRUCTIONS'],
+    // Supports legacy names PHONE_NUMBER_ID / ACCESS_TOKEN / BUSINESS_TYPE / SPECIAL_INSTRUCTIONS
+    orgName: compat('SEED_ORG_NAME', 'ORG_NAME') ?? 'My Business',
+    phoneNumberId: compat('SEED_PHONE_NUMBER_ID', 'PHONE_NUMBER_ID'),
+    accessToken: compat('SEED_ACCESS_TOKEN', 'ACCESS_TOKEN'),
+    wabaId: compat('SEED_WABA_ID', 'WABA_ID'),
+    businessType: compat('SEED_BUSINESS_TYPE', 'BUSINESS_TYPE'),
+    specialInstructions: compat('SEED_SPECIAL_INSTRUCTIONS', 'SPECIAL_INSTRUCTIONS'),
   },
 } as const;
