@@ -83,7 +83,6 @@ export async function semanticSearch(
       INNER JOIN "Knowledge" k ON k.id = kc."knowledgeId"
       WHERE k."organizationId" = ${organizationId}
         AND k."isActive" = true
-        ${category ? prisma.$queryRaw`AND k.category = ${category}` : prisma.$queryRaw``}
       ORDER BY kc.embedding <=> ${JSON.stringify(embedding)}::vector
       LIMIT ${limit}
     `;
