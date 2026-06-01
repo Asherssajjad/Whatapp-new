@@ -218,7 +218,10 @@ export async function getAnalytics(req: AuthRequest, res: Response): Promise<voi
     prisma.appointment.count({
       where: {
         organizationId: orgId,
-        dateTime: { gte: new Date(now.toDateString()), lt: new Date(now.toDateString() + 'T23:59:59') },
+        dateTime: {
+          gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+          lt: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
+        },
       },
     }),
     prisma.tag.findMany({
