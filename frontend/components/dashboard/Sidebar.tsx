@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  MessageCircle, BarChart3, BookOpen,
+  MessageCircle, BarChart3, BookOpen, Settings,
   LogOut, Menu, X, ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ const navItems = [
   { href: '/dashboard', icon: MessageCircle, label: 'Chats', exact: true },
   { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/dashboard/knowledge', icon: BookOpen, label: 'Knowledge' },
+  { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function Sidebar() {

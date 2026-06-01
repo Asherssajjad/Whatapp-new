@@ -295,6 +295,8 @@ async function processMessage(
       socialLinks: socialLinksStr,
       businessType: organization.businessType,
       specialInstructions: organization.specialInstructions ?? undefined,
+      orgName: organization.name,
+      websiteUrl: organization.websiteUrl ?? undefined,
       waNumber,
       conversationId: conversation.id,
       imageBuffer,

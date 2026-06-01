@@ -135,6 +135,8 @@ export interface AIContext {
   businessType: string;
   specialInstructions?: string;
   isAgentMode?: boolean;
+  orgName?: string;
+  websiteUrl?: string;
 }
 
 // ─── Vector / RAG Types ────────────────────────────────────────────────────────
