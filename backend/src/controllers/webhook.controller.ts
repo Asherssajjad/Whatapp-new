@@ -25,6 +25,8 @@ export async function handleIncomingMessage(req: Request, res: Response): Promis
 
   try {
     const payload = req.body as WAWebhookPayload;
+    console.log(`[Webhook] POST received — object: ${payload.object}`);
+
     if (payload.object !== 'whatsapp_business_account') return;
 
     for (const entry of payload.entry) {
@@ -41,6 +43,7 @@ export async function handleIncomingMessage(req: Request, res: Response): Promis
         const messages = value.messages ?? [];
         const contacts = value.contacts ?? [];
         const phoneNumberId = value.metadata.phone_number_id.trim();
+        console.log(`[Webhook] phone_number_id="${phoneNumberId}" msgs=${messages.length}`);
 
         for (const msg of messages) {
           await processMessage(msg, contacts, phoneNumberId);
@@ -93,9 +96,10 @@ async function processMessage(
   });
 
   if (!waNumber) {
-    console.warn(`[Webhook] Unknown phone_number_id: ${phoneNumberId}`);
+    console.warn(`[Webhook] ❌ No number found for phone_number_id="${phoneNumberId}" — check DB`);
     return;
   }
+  console.log(`[Webhook] ✅ Matched org: ${waNumber.organization.name}`);
 
   const { organizationId, organization } = waNumber;
   const waService = createWAService(waNumber);
@@ -269,6 +273,7 @@ async function processMessage(
   const agentList = agents.map(a => `- ${a.name} (${a.phone})`).join('\n') || 'No agents configured.';
   const socialLinksStr = socialLinks.map(s => `${s.platform}: ${s.url}`).join('\n') || 'Not configured.';
 
+  console.log(`[Webhook] 🤖 Generating AI reply for ${senderPhone}...`);
   // Generate AI reply
   try {
     const aiReply = await generateAIResponse({
@@ -288,8 +293,9 @@ async function processMessage(
       imageMimeType,
     });
 
-    if (!aiReply) return;
+    if (!aiReply) { console.warn('[Webhook] AI returned null reply'); return; }
 
+    console.log(`[Webhook] 📤 Sending reply to ${senderPhone}: "${aiReply.slice(0, 60)}..."`);
     // Send AI response
     await waService.sendText({ to: senderPhone, body: aiReply });
 
