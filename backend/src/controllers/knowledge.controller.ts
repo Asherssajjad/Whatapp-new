@@ -24,7 +24,10 @@ export async function ingestURL(req: AuthRequest, res: Response): Promise<void> 
 
   if (!url) { res.status(400).json({ error: 'URL required' }); return; }
 
-  const response = await axios.get(url, {
+  // Auto-add https:// if user typed bare domain like "rootout.pk"
+  const normalizedUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+
+  const response = await axios.get(normalizedUrl, {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; WhatsappBot/2.0)' },
     timeout: 15000,
   });
@@ -37,9 +40,9 @@ export async function ingestURL(req: AuthRequest, res: Response): Promise<void> 
 
   const knowledge = await prisma.knowledge.create({
     data: {
-      title: title ?? new URL(url).hostname,
+      title: title ?? new URL(normalizedUrl).hostname,
       source: 'URL',
-      sourceUrl: url,
+      sourceUrl: normalizedUrl,
       category: category as never,
       rawContent: text,
       organizationId: orgId,
