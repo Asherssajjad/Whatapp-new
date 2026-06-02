@@ -351,6 +351,8 @@ export async function generateAIResponse(
     socialLinks: ctx.socialLinks,
     businessType: ctx.businessType,
     specialInstructions: ctx.specialInstructions,
+    orgName: ctx.orgName,
+    websiteUrl: ctx.websiteUrl,
     isAgentMode: ctx.isAgentMode,
   };
   const systemPrompt = buildSystemPrompt(fullCtx);

@@ -65,8 +65,8 @@ export const analyticsApi = {
 
 export const knowledgeApi = {
   list: (params?: Record<string, unknown>) => api.get('/knowledge', { params }),
-  ingestUrl: (url: string, title?: string, category?: string) =>
-    api.post('/knowledge/url', { url, title, category }),
+  ingestUrl: (url: string, title?: string, category?: string, crawlSite?: boolean) =>
+    api.post('/knowledge/url', { url, title, category, crawlSite }),
   ingestManual: (title: string, content: string, category?: string) =>
     api.post('/knowledge/manual', { title, content, category }),
   delete: (id: string) => api.delete(`/knowledge/${id}`),

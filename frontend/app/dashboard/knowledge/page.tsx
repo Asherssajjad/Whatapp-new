@@ -37,6 +37,16 @@ export default function KnowledgePage() {
     onError: () => addNotification('error', 'Failed to ingest URL'),
   });
 
+  const crawlSiteMutation = useMutation({
+    mutationFn: () => knowledgeApi.ingestUrl(url, title || undefined, category, true),
+    onSuccess: () => {
+      addNotification('success', 'Crawling entire site — check back in 1-2 minutes');
+      setUrl(''); setTitle('');
+      setTimeout(() => void queryClient.invalidateQueries({ queryKey: ['knowledge'] }), 90000);
+    },
+    onError: () => addNotification('error', 'Failed to start crawl'),
+  });
+
   const ingestManualMutation = useMutation({
     mutationFn: () => knowledgeApi.ingestManual(title, content, category),
     onSuccess: (res) => {
@@ -107,13 +117,24 @@ export default function KnowledgePage() {
               <>
                 <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://your-website.com/faq" />
                 <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title (optional)" />
+                <div className="flex gap-2">
                 <Button
                   onClick={() => ingestUrlMutation.mutate()}
-                  disabled={!url || ingestUrlMutation.isPending}
-                  className="w-full"
+                  disabled={!url || ingestUrlMutation.isPending || crawlSiteMutation.isPending}
+                  className="flex-1"
                 >
-                  {ingestUrlMutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Scraping...</> : <><Plus className="w-4 h-4" />Ingest URL</>}
+                  {ingestUrlMutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Scraping...</> : <><Plus className="w-4 h-4" />This Page Only</>}
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => crawlSiteMutation.mutate()}
+                  disabled={!url || crawlSiteMutation.isPending || ingestUrlMutation.isPending}
+                  className="flex-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  title="Crawls all pages on the website automatically"
+                >
+                  {crawlSiteMutation.isPending ? <><Loader2 className="w-4 h-4 animate-spin" />Crawling...</> : <>🌐 Crawl Entire Site</>}
+                </Button>
+              </div>
               </>
             ) : (
               <>
