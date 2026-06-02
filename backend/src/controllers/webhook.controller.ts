@@ -116,7 +116,7 @@ async function processMessage(
   await waService.markAsRead(msg.id);
 
   // Upsert contact
-  const contact = await prisma.contact.upsert({
+  let contact = await prisma.contact.upsert({
     where: { phone_organizationId: { phone: senderPhone, organizationId } },
     create: {
       phone: senderPhone,
