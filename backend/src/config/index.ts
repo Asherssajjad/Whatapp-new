@@ -38,7 +38,7 @@ export const config = {
     embeddingModel: optional('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small'),
     whisperModel: optional('OPENAI_WHISPER_MODEL', 'whisper-1'),
     maxTokens: parseInt(optional('OPENAI_MAX_TOKENS', '1000'), 10),
-    temperature: parseFloat(optional('OPENAI_TEMPERATURE', '0.3')),
+    temperature: parseFloat(optional('OPENAI_TEMPERATURE', '0.7')),
   },
 
   whatsapp: {
