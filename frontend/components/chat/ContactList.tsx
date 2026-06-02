@@ -53,16 +53,16 @@ export default function ContactList() {
       </div>
 
       {/* Filters */}
-      <div className="px-4 py-2 flex gap-1.5 border-b border-border overflow-x-auto">
+      <div className="px-3 py-2 flex gap-1 border-b border-border overflow-x-auto scrollbar-none">
         {FILTERS.map(f => (
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
             className={cn(
-              'flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition',
+              'flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition flex-shrink-0',
               filter === f.value
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-accent text-muted-foreground hover:text-foreground'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
             )}
           >
             {f.icon && <f.icon className="w-3 h-3" />}

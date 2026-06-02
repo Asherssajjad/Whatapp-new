@@ -71,8 +71,8 @@ export default function Sidebar() {
               <MessageCircle className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="font-bold text-foreground text-sm leading-none">WhatsApp AI</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Powered by GPT-4o</p>
+              <p className="font-bold text-foreground text-sm leading-none">Rexo Bot</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">AI WhatsApp Assistant</p>
             </div>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-muted-foreground hover:text-foreground">

@@ -275,11 +275,18 @@ async function processMessage(
     content: m.transcription ?? m.content,
   }));
 
+  // Detect if bot has been giving the same response in a loop — reset context
+  const recentBotMsgs = allHistory.filter(m => m.role === 'assistant').slice(-3).map(m => m.content);
+  const isStuckInLoop = recentBotMsgs.length >= 2 && recentBotMsgs.every(m => m === recentBotMsgs[0]);
+  if (isStuckInLoop) {
+    console.warn(`[Webhook] ⚠️ Bot stuck in response loop — clearing history`);
+  }
+
   // If message is a greeting or very short — pass ONLY the current message to AI
   // This prevents AI from continuing previous product/topic discussion on a fresh greeting
   const IS_GREETING = /^(hi+|hello|hey|salam|salaam|assalam|wa alaikum|hii+|helo|aoa|ji\b|okay|ok\b|thanks|bye|👋|😊|🙏)/i;
   const isNewGreeting = IS_GREETING.test(textContent.trim()) || textContent.trim().length < 10;
-  const messageHistory = isNewGreeting
+  const messageHistory = (isNewGreeting || isStuckInLoop)
     ? [{ role: 'user' as const, content: textContent }]
     : allHistory;
 

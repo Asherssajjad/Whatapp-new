@@ -56,11 +56,11 @@ export default function LoginPage() {
             <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-green-900/50">
               <MessageCircle className="w-5 h-5 text-white" />
             </div>
-            <span className="text-white font-bold text-xl tracking-tight">WA AI Bot</span>
+            <span className="text-white font-bold text-xl tracking-tight">Rexo Bot</span>
           </div>
 
           <h1 className="text-[2.6rem] font-extrabold text-white leading-[1.15] mb-5">
-            The smartest way<br />to manage WhatsApp
+            Rexo Bot — The smartest<br />WhatsApp AI assistant
           </h1>
           <p className="text-green-300/80 text-base leading-relaxed mb-12">
             AI-powered automation that handles conversations, qualifies leads, and grows your business — 24/7.
@@ -106,7 +106,7 @@ export default function LoginPage() {
             <div className="w-9 h-9 bg-green-500 rounded-xl flex items-center justify-center">
               <MessageCircle className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="font-bold text-gray-900 dark:text-white text-lg">WA AI Bot</span>
+            <span className="font-bold text-gray-900 dark:text-white text-lg">Rexo Bot</span>
           </div>
 
           <div className="mb-8">

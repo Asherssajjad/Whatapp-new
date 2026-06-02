@@ -6,7 +6,7 @@ import Providers from './providers';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'WhatsApp AI Bot',
+  title: 'Rexo Bot',
   description: 'AI-powered WhatsApp business automation platform',
   icons: { icon: '/icon.png' },
 };

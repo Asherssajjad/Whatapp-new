@@ -236,23 +236,22 @@ function MessageText({ content, isBot }: { content: string; isBot: boolean }) {
     ? 'underline opacity-75 hover:opacity-100'
     : 'text-blue-600 dark:text-blue-400 underline';
 
-  // Escape HTML to prevent XSS, then convert URLs to anchor tags
+  // Single-pass replacement to prevent double-wrapping of URLs
+  // Handles both [text](url) markdown AND plain https:// URLs
   const html = content
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    // markdown links [text](url) → show url as link text
-    .replace(/\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g,
-      `<a href="$2" target="_blank" rel="noreferrer" class="${linkCls}">$2</a>`)
-    // plain URLs
-    .replace(/(https?:\/\/[^\s<]+)/g,
-      `<a href="$1" target="_blank" rel="noreferrer" class="${linkCls}">$1</a>`);
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(
+      /\[([^\]]*)\]\((https?:\/\/[^)]+)\)|(https?:\/\/[^\s<"&]+)/g,
+      (_match, _mdText, mdUrl, plainUrl) => {
+        const url = (mdUrl ?? plainUrl) as string;
+        return `<a href="${url}" target="_blank" rel="noreferrer" class="${linkCls}">${url}</a>`;
+      }
+    );
 
   return (
     <p
       className="break-words leading-relaxed text-sm whitespace-pre-wrap"
-      // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: html }} // eslint-disable-line react/no-danger
     />
   );
 }
