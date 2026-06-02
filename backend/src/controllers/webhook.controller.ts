@@ -283,7 +283,17 @@ async function processMessage(
     ? [{ role: 'user' as const, content: textContent }]
     : allHistory;
 
-  if (isNewGreeting) console.log(`[Webhook] 🔄 Greeting detected — fresh context for: "${textContent.trim()}"`);
+  if (isNewGreeting) {
+    console.log(`[Webhook] 🔄 Greeting detected — fresh context for: "${textContent.trim()}"`);
+    // Auto re-enable AI on fresh greeting so customer always gets a reply
+    if (!contact.aiEnabled) {
+      await prisma.contact.update({
+        where: { id: contact.id },
+        data: { aiEnabled: true, isEscalated: false, status: 'ACTIVE' },
+      });
+      contact = { ...contact, aiEnabled: true, isEscalated: false, status: 'ACTIVE' as const };
+    }
+  }
 
   // Get agents and social links for context
   const agents = await prisma.agent.findMany({ where: { organizationId } });

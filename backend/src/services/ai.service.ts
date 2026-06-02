@@ -295,10 +295,10 @@ async function executeTool(
     }
 
     case 'escalate_to_agent': {
-      // Mark contact as escalated
+      // Mark as escalated but keep AI ON — human agent disables manually when they join
       await prisma.contact.update({
         where: { phone_organizationId: { phone: contactPhone, organizationId } },
-        data: { isEscalated: true, escalatedAt: new Date(), aiEnabled: false, status: 'ESCALATED' },
+        data: { isEscalated: true, escalatedAt: new Date(), status: 'ESCALATED' },
       });
 
       // Notify first available agent
