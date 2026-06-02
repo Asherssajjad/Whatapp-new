@@ -326,11 +326,14 @@ export async function generateAIResponse(
   const histCopy = [...ctx.messageHistory];
   const lastUserMsg = histCopy.reverse().find(m => m.role === 'user');
   const lastUserMessage = lastUserMsg?.content ?? '';
-  const knowledgeContext = await buildKnowledgeContext(
-    typeof lastUserMessage === 'string' ? lastUserMessage : '',
-    ctx.organizationId,
-    8
-  );
+  // Skip knowledge search for greetings and short social messages
+  const GREETINGS = /^(hi|hello|hey|salam|salaam|assalam|assalamualaikum|wa alaikum|hii|hiii|helo|hlo|aoa|aoa\s|ji|okay|ok|shukria|thanks|thank you|good|nice|bye|goodbye|tc|take care|👋|😊|🙏)\b/i;
+  const queryStr = typeof lastUserMessage === 'string' ? lastUserMessage.trim() : '';
+  const isGreeting = GREETINGS.test(queryStr) || queryStr.length < 8;
+
+  const knowledgeContext = isGreeting
+    ? 'No product search needed for this message.'
+    : await buildKnowledgeContext(queryStr, ctx.organizationId, 8);
 
   const fullCtx: AIContext = {
     organizationId: ctx.organizationId,

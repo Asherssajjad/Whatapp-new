@@ -88,7 +88,7 @@ export async function semanticSearch(
     `;
 
     void categoryFilter; // suppress unused warning when no category
-    return results.filter(r => r.similarity > 0.25);
+    return results.filter(r => r.similarity > 0.35);
   } catch {
     return keywordSearch(query, organizationId, limit);
   }
