@@ -7,6 +7,7 @@ import {
 } from '../controllers/chat.controller';
 import {
   getKnowledgeBases, ingestURL, ingestManual, deleteKnowledge, toggleKnowledge,
+  clearKnowledgeBase, scrapeEcommerce, scrapeServices,
 } from '../controllers/knowledge.controller';
 import {
   getNumbers, addNumber, updateNumber, setPrimary, deleteNumber,
@@ -48,8 +49,11 @@ router.get('/handoffs', authenticate, getHandoffs);
 
 // ─── Knowledge ─────────────────────────────────────────────────────────────────
 router.get('/knowledge', authenticate, getKnowledgeBases);
+router.delete('/knowledge/clear', authenticate, clearKnowledgeBase);
 router.post('/knowledge/url', authenticate, ingestURL);
 router.post('/knowledge/manual', authenticate, ingestManual);
+router.post('/knowledge/scrape-ecommerce', authenticate, scrapeEcommerce);
+router.post('/knowledge/scrape-services', authenticate, scrapeServices);
 router.delete('/knowledge/:id', authenticate, deleteKnowledge);
 router.patch('/knowledge/:id/toggle', authenticate, toggleKnowledge);
 
