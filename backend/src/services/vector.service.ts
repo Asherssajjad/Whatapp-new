@@ -88,7 +88,7 @@ export async function semanticSearch(
     `;
 
     void categoryFilter; // suppress unused warning when no category
-    return results.filter(r => r.similarity > 0.5);
+    return results.filter(r => r.similarity > 0.25);
   } catch {
     return keywordSearch(query, organizationId, limit);
   }
@@ -104,8 +104,8 @@ async function keywordSearch(
   const words = query
     .toLowerCase()
     .split(/\s+/)
-    .filter(w => w.length > 3)
-    .slice(0, 5);
+    .filter(w => w.length >= 3)
+    .slice(0, 8);
 
   if (words.length === 0) return [];
 
