@@ -23,10 +23,12 @@ export default function SettingsPage() {
   const [orgLoaded, setOrgLoaded] = useState(false);
 
   useQuery({
-    queryKey: ['org-settings'],
+    queryKey: ['org-settings', user?.organizationId],
     queryFn: async () => {
+      if (!user?.organizationId) return null;
       const res = await api.get('/admin/organizations');
-      const org = res.data[0];
+      const orgs = res.data as Array<{ id: string; name: string; websiteUrl?: string; specialInstructions?: string }>;
+      const org = orgs.find(o => o.id === user.organizationId) ?? orgs[0];
       if (org && !orgLoaded) {
         setOrgName(org.name ?? '');
         setWebsiteUrl(org.websiteUrl ?? '');
@@ -35,13 +37,13 @@ export default function SettingsPage() {
       }
       return org;
     },
+    enabled: !!user?.organizationId,
   });
 
   const saveOrgMutation = useMutation({
     mutationFn: async () => {
-      const orgsRes = await api.get('/admin/organizations');
-      const orgId = orgsRes.data[0]?.id;
-      if (!orgId) throw new Error('No organization found');
+      const orgId = user?.organizationId;
+      if (!orgId) throw new Error('No organization linked to your account');
       return api.put(`/admin/organizations/${orgId}`, { name: orgName, websiteUrl, specialInstructions });
     },
     onSuccess: () => {
