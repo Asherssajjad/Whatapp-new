@@ -5,11 +5,14 @@ import { config } from '../config';
 let io: SocketIOServer;
 
 export function initSocket(server: HTTPServer): SocketIOServer {
+  // Allow all origins for Socket.io (same policy as Express CORS)
+  const socketOrigin = config.cors.origins.includes('*') ? '*' : config.cors.origins;
+
   io = new SocketIOServer(server, {
     cors: {
-      origin: config.cors.origins,
+      origin: socketOrigin,
       methods: ['GET', 'POST'],
-      credentials: true,
+      credentials: socketOrigin !== '*',
     },
     pingTimeout: 60000,
   });

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Send, Bot, BotOff, Phone, MoreVertical, Mic, Image,
@@ -232,39 +232,29 @@ export default function ChatWindow() {
 }
 
 function MessageText({ content, isBot }: { content: string; isBot: boolean }) {
-  // Parse content: convert [text](url) to links, plain URLs to links
-  const parts: React.ReactNode[] = [];
-  const linkColor = isBot ? 'text-emerald-900 dark:text-emerald-300 underline' : 'text-blue-600 dark:text-blue-400 underline';
+  const linkCls = isBot
+    ? 'underline opacity-75 hover:opacity-100'
+    : 'text-blue-600 dark:text-blue-400 underline';
 
-  // Combined regex: markdown links OR plain URLs
-  const regex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|(https?:\/\/[^\s]+)/g;
-  let last = 0;
-  let match;
+  // Escape HTML to prevent XSS, then convert URLs to anchor tags
+  const html = content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    // markdown links [text](url) → show url as link text
+    .replace(/\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g,
+      `<a href="$2" target="_blank" rel="noreferrer" class="${linkCls}">$2</a>`)
+    // plain URLs
+    .replace(/(https?:\/\/[^\s<]+)/g,
+      `<a href="$1" target="_blank" rel="noreferrer" class="${linkCls}">$1</a>`);
 
-  while ((match = regex.exec(content)) !== null) {
-    if (match.index > last) {
-      parts.push(content.slice(last, match.index));
-    }
-    if (match[1] && match[2]) {
-      // Markdown link [text](url)
-      parts.push(
-        <a key={match.index} href={match[2]} target="_blank" rel="noreferrer" className={linkColor}>
-          {match[2]}
-        </a>
-      );
-    } else if (match[3]) {
-      // Plain URL
-      parts.push(
-        <a key={match.index} href={match[3]} target="_blank" rel="noreferrer" className={linkColor}>
-          {match[3]}
-        </a>
-      );
-    }
-    last = match.index + match[0].length;
-  }
-  if (last < content.length) parts.push(content.slice(last));
-
-  return <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">{parts}</p>;
+  return (
+    <p
+      className="break-words leading-relaxed text-sm whitespace-pre-wrap"
+      // eslint-disable-next-line react/no-danger
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
 }
 
 function MessageBubble({ msg, prevMsg }: { msg: Message; prevMsg?: Message }) {
