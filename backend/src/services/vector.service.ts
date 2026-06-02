@@ -87,11 +87,15 @@ export async function semanticSearch(
       LIMIT ${limit}
     `;
 
-    void categoryFilter; // suppress unused warning when no category
-    return results.filter(r => r.similarity > 0.35);
+    void categoryFilter;
+    const vectorResults = results.filter(r => r.similarity > 0.35);
+    if (vectorResults.length > 0) return vectorResults;
+    // Vector search found nothing above threshold — fall through to keyword
   } catch {
-    return keywordSearch(query, organizationId, limit);
+    // Vector search failed — fall through to keyword
   }
+
+  return keywordSearch(query, organizationId, limit);
 }
 
 // ─── Keyword Fallback ──────────────────────────────────────────────────────────
