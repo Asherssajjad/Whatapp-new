@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const [orgName, setOrgName] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
+  const [businessType, setBusinessType] = useState('GENERAL');
   const [orgLoaded, setOrgLoaded] = useState(false);
 
   useQuery({
@@ -33,6 +34,7 @@ export default function SettingsPage() {
         setOrgName(org.name ?? '');
         setWebsiteUrl(org.websiteUrl ?? '');
         setSpecialInstructions(org.specialInstructions ?? '');
+        setBusinessType((org as { businessType?: string }).businessType ?? 'GENERAL');
         setOrgLoaded(true);
       }
       return org;
@@ -44,7 +46,7 @@ export default function SettingsPage() {
     mutationFn: async () => {
       const orgId = user?.organizationId;
       if (!orgId) throw new Error('No organization linked to your account');
-      return api.put(`/admin/organizations/${orgId}`, { name: orgName, websiteUrl, specialInstructions });
+      return api.put(`/admin/organizations/${orgId}`, { name: orgName, websiteUrl, specialInstructions, businessType });
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['org-settings'] });
@@ -101,6 +103,22 @@ export default function SettingsPage() {
                 placeholder="https://rootout.pk"
               />
               <p className="text-xs text-muted-foreground mt-1">Bot will share this when asked for website</p>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">
+                Business Type
+              </label>
+              <select
+                value={businessType}
+                onChange={e => setBusinessType(e.target.value)}
+                className="w-full h-10 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
+              >
+                <option value="ECOMMERCE">🛒 E-commerce (Products / Orders)</option>
+                <option value="SERVICES">🏢 Services (Courses / Appointments)</option>
+                <option value="GENERAL">⚡ General</option>
+              </select>
+              <p className="text-xs text-muted-foreground mt-1">Controls whether bot captures orders or appointments</p>
             </div>
 
             <div>
