@@ -324,7 +324,8 @@ export async function generateAIResponse(
   const lastUserMessage = lastUserMsg?.content ?? '';
   const knowledgeContext = await buildKnowledgeContext(
     typeof lastUserMessage === 'string' ? lastUserMessage : '',
-    ctx.organizationId
+    ctx.organizationId,
+    8
   );
 
   const fullCtx: AIContext = {

@@ -130,9 +130,10 @@ async function keywordSearch(
 
 export async function buildKnowledgeContext(
   query: string,
-  organizationId: string
+  organizationId: string,
+  limit = 5
 ): Promise<string> {
-  const results = await semanticSearch(query, organizationId, 5);
+  const results = await semanticSearch(query, organizationId, limit);
   if (results.length === 0) return 'No specific knowledge base information found.';
 
   return results

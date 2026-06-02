@@ -150,13 +150,14 @@ function extractPageText($: cheerio.CheerioAPI): string {
 // ─── Format product list as knowledge text ─────────────────────────────────────
 
 function formatProductKnowledge(categoryTitle: string, categoryUrl: string, products: Product[]): string {
-  const lines = [`${categoryTitle}\nCategory URL: ${categoryUrl}\n`];
-  lines.push('Products available:\n');
+  const cleanTitle = categoryTitle.replace(/\s+/g, ' ').trim().replace(/ – My Toys$| - My Toys$/i, '');
+  const lines = [`Category: ${cleanTitle}`, `URL: ${categoryUrl}`, '', 'Products:'];
   for (const p of products) {
-    const pricePart = p.price ? ` — ${p.price}` : '';
-    lines.push(`• ${p.name}${pricePart}\n  Link: ${p.url}`);
+    const cleanName = p.name.replace(/\s+/g, ' ').trim();
+    const pricePart = p.price ? ` | ${p.price}` : '';
+    lines.push(`- ${cleanName}${pricePart} → ${p.url}`);
   }
-  lines.push(`\nView all products in this category: ${categoryUrl}`);
+  lines.push('', `Browse all: ${categoryUrl}`);
   return lines.join('\n');
 }
 
@@ -262,7 +263,7 @@ export async function scrapeEcommerce(req: AuthRequest, res: Response): Promise<
         if (!html) continue;
 
         const $ = cheerio.load(html);
-        const catTitle = $('title').text().trim() || $('h1').first().text().trim() || catUrl.split('/').pop()?.replace(/-/g, ' ') || 'Products';
+        const catTitle = ($('title').text() || $('h1').first().text() || catUrl.split('/').pop()?.replace(/-/g, ' ') || 'Products').replace(/\s+/g, ' ').trim();
         const products = extractProductsFromHtml(html, catUrl, origin);
 
         if (products.length === 0) {
