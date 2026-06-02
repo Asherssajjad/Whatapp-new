@@ -196,8 +196,11 @@ Customer: ${ctx.contactName ?? 'Unknown'} (${ctx.contactPhone})
 KNOWLEDGE BASE (products with prices and links):
 ${ctx.knowledgeContext}
 
-${ctx.agentList ? `Agents: ${ctx.agentList}` : ''}
-${ctx.socialLinks ? `Links: ${ctx.socialLinks}` : ''}`;
+${ctx.agentList && ctx.agentList !== 'No agents configured.'
+  ? `AVAILABLE AGENTS (share their name + number when customer asks for agent/human):
+${ctx.agentList}`
+  : 'No agents configured.'}
+${ctx.socialLinks ? `\nLinks: ${ctx.socialLinks}` : ''}`;
 }
 
 // ─── Tool Execution ────────────────────────────────────────────────────────────

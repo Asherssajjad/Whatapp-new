@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  MessageCircle, BarChart3, BookOpen, Settings, ShoppingBag,
+  MessageCircle, BarChart3, BookOpen, Settings, ShoppingBag, Users,
   LogOut, Menu, X, ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 const navItems = [
   { href: '/dashboard', icon: MessageCircle, label: 'Chats', exact: true },
   { href: '/dashboard/orders', icon: ShoppingBag, label: 'Orders' },
+  { href: '/dashboard/agents', icon: Users, label: 'Agents' },
   { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/dashboard/knowledge', icon: BookOpen, label: 'Knowledge' },
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
