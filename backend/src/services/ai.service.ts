@@ -12,17 +12,19 @@ const AI_TOOLS: AITool[] = [
     type: 'function',
     function: {
       name: 'capture_order',
-      description: 'Use this when a customer wants to buy/order a product. Capture their order details.',
+      description: 'Call this ONLY after you have collected all required customer details. Do not call until you have the customer name, phone, city, and product.',
       parameters: {
         type: 'object',
-        required: ['productName', 'customerName'],
+        required: ['productName', 'customerName', 'customerPhone', 'customerCity'],
         properties: {
-          productName: { type: 'string', description: 'Product the customer wants to order' },
-          quantity: { type: 'number', description: 'How many they want (default 1)' },
+          productName: { type: 'string', description: 'Product name and variant/color' },
+          quantity: { type: 'number', description: 'Quantity (default 1)' },
+          pricePerItem: { type: 'number', description: 'Price per item from knowledge base' },
           customerName: { type: 'string', description: 'Customer full name' },
-          pricePerItem: { type: 'number', description: 'Price per item if known from knowledge base' },
-          deliveryAddress: { type: 'string', description: 'Delivery address if provided' },
-          notes: { type: 'string', description: 'Any special notes or requests' },
+          customerPhone: { type: 'string', description: 'Customer WhatsApp/phone number' },
+          customerAddress: { type: 'string', description: 'Full delivery address' },
+          customerCity: { type: 'string', description: 'City for delivery' },
+          notes: { type: 'string', description: 'Special requests or notes' },
         },
       },
     },
@@ -45,14 +47,16 @@ const AI_TOOLS: AITool[] = [
     type: 'function',
     function: {
       name: 'book_appointment',
-      description: 'Book an appointment for the customer',
+      description: 'Record enrollment/appointment after collecting customer name, phone, and service/course interest.',
       parameters: {
         type: 'object',
-        required: ['customerName', 'dateTime'],
+        required: ['customerName', 'customerPhone', 'serviceName'],
         properties: {
-          customerName: { type: 'string' },
-          dateTime: { type: 'string', description: 'ISO 8601 datetime' },
-          notes: { type: 'string' },
+          customerName: { type: 'string', description: 'Customer full name' },
+          customerPhone: { type: 'string', description: 'Customer phone number' },
+          serviceName: { type: 'string', description: 'Course or service they want to enroll in' },
+          preferredTiming: { type: 'string', description: 'Morning/Evening/Weekend preference' },
+          notes: { type: 'string', description: 'Any additional details' },
         },
       },
     },
@@ -175,36 +179,44 @@ Provide a brief, professional handoff note covering: customer issue, relevant in
 
   const businessName = ctx.orgName ?? 'our business';
   const website = ctx.websiteUrl ?? '';
+  const isEcom = ctx.businessType === 'ECOMMERCE';
 
-  return `You are a helpful WhatsApp customer support assistant for ${businessName}.${website ? ` Website: ${website}` : ''}
-${ctx.specialInstructions ? ctx.specialInstructions : ''}
+  return `You are the official WhatsApp sales assistant for ${businessName}.${website ? ` Website: ${website}` : ''}
+${ctx.specialInstructions ? `\n${ctx.specialInstructions}` : ''}
 
-Language: Mostly Roman Urdu with some English words naturally mixed in. Keep replies short (2-3 sentences max).
-No emojis. No markdown. Share URLs as plain text only.
-When unsure about something, say "aap website visit karein" and share the URL rather than guessing.
+LANGUAGE: Match the customer's language exactly. English message = English reply. Roman Urdu = Roman Urdu reply. Short replies (2-4 sentences max). No emojis. No markdown. Plain URLs only. When unsure, share: ${website || 'the website'} instead of guessing.
 
-INTENT DETECTION — handle each type correctly:
-- Greeting / general chat → respond warmly, offer help
-- Product question → use KNOWLEDGE BASE, share product name + price + link
-- Website request → share: ${website || 'not configured'}
-${ctx.businessType === 'ECOMMERCE'
-  ? '- "Lena hai" / "Order karna hai" / "Buy" / "Purchase" / "Kharidna hai" → use capture_order tool, then tell customer team will contact to confirm\n- Order status / delivery tracking → cannot access order details, ask customer to contact support'
-  : '- "Seekhna hai" / "Join karna hai" / "Register karna hai" / "Enroll karna hai" / "Interested hoon" → use book_appointment tool to record enrollment interest\n- For services/courses: when customer shows interest, use book_appointment to capture their details'
-}
-- Complaint / return / refund → acknowledge, ask details, use escalate_to_agent tool
-- "Agent se baat karna hai" / "Human se baat karo" / escalation requests → IMMEDIATELY use escalate_to_agent tool
-- Appointment booking → use book_appointment tool
+${isEcom ? `ORDER FLOW (follow step by step):
+When customer wants to buy:
+1. Confirm product name and variant/color
+2. Collect full name
+3. Collect phone number
+4. Collect delivery address
+5. Collect city
+6. THEN call capture_order tool — NOT before step 5
+7. Confirm: "Order place ho gaya! Team 24 hours mein contact karegi."
+Delivery: Share delivery info from knowledge base if asked.`
+: `ENROLLMENT FLOW (follow step by step):
+When customer wants to enroll/register/learn:
+1. Confirm which course/service
+2. Collect full name
+3. Collect phone number
+4. Collect preferred timing (morning/evening/weekend)
+5. THEN call book_appointment tool
+6. Confirm: "Registration ho gaya! Hamari team jald contact karegi."`}
+
+ESCALATION: Agent requests / complaints / refunds → use escalate_to_agent tool immediately
+ORDER/PAYMENT STATUS: You cannot access orders — ask customer to contact support or share website
 
 Customer: ${ctx.contactName ?? 'Unknown'} (${ctx.contactPhone})
 
-KNOWLEDGE BASE (products with prices and links):
+KNOWLEDGE BASE:
 ${ctx.knowledgeContext}
 
 ${ctx.agentList && ctx.agentList !== 'No agents configured.'
-  ? `AVAILABLE AGENTS (share their name + number when customer asks for agent/human):
-${ctx.agentList}`
-  : 'No agents configured.'}
-${ctx.socialLinks ? `\nLinks: ${ctx.socialLinks}` : ''}`;
+  ? `AGENTS (share when asked):\n${ctx.agentList}`
+  : ''}
+${ctx.socialLinks ? `Contact/Social: ${ctx.socialLinks}` : ''}`;
 }
 
 // ─── Tool Execution ────────────────────────────────────────────────────────────
@@ -227,15 +239,21 @@ async function executeTool(
     case 'capture_order': {
       const qty = Number(args['quantity']) || 1;
       const price = Number(args['pricePerItem']) || 0;
+      const addressNote = [
+        args['customerAddress'] && `Address: ${String(args['customerAddress'])}`,
+        args['customerCity'] && `City: ${String(args['customerCity'])}`,
+        args['notes'] && String(args['notes']),
+      ].filter(Boolean).join(' | ');
+
       const order = await prisma.order.create({
         data: {
           orderId: `ORD-${Date.now()}`,
           customerName: String(args['customerName']),
-          phone: contactPhone,
+          phone: String(args['customerPhone'] ?? contactPhone),
           items: [{ product: String(args['productName']), quantity: qty, price }],
           total: qty * price,
           status: 'PENDING',
-          notes: args['notes'] ? String(args['notes']) : undefined,
+          notes: addressNote || undefined,
           organizationId,
         },
       });
@@ -263,13 +281,18 @@ async function executeTool(
     }
 
     case 'book_appointment': {
-      const dateTimeStr = String(args['dateTime'] ?? new Date().toISOString());
+      const apptNotes = [
+        args['serviceName'] && `Course/Service: ${String(args['serviceName'])}`,
+        args['preferredTiming'] && `Timing: ${String(args['preferredTiming'])}`,
+        args['notes'] && String(args['notes']),
+      ].filter(Boolean).join(' | ');
+
       const appt = await prisma.appointment.create({
         data: {
           customerName: String(args['customerName'] ?? contactPhone),
-          phone: contactPhone,
-          dateTime: new Date(dateTimeStr),
-          notes: args['notes'] ? String(args['notes']) : undefined,
+          phone: String(args['customerPhone'] ?? contactPhone),
+          dateTime: new Date(),
+          notes: apptNotes || undefined,
           organizationId,
         },
       });
