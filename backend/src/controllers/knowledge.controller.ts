@@ -149,7 +149,7 @@ export async function ingestURL(req: AuthRequest, res: Response): Promise<void> 
 
     if (text.length < 80) { res.status(400).json({ error: 'Could not extract meaningful content from URL' }); return; }
 
-    const pageTitle = title ?? $('title').text().trim() || new URL(startUrl).hostname;
+    const pageTitle = title ?? ($('title').text().trim() || new URL(startUrl).hostname);
 
     const existing = await prisma.knowledge.findFirst({ where: { sourceUrl: startUrl, organizationId: orgId } });
     if (existing) {
