@@ -76,7 +76,7 @@ export default function OrdersPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-border bg-card">
+      <div className="px-4 lg:px-6 pt-12 lg:pt-4 pb-4 border-b border-border bg-card">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function OrdersPage() {
       </div>
 
       {/* Orders list */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-3 lg:p-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />

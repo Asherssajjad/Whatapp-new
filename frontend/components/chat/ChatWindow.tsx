@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Send, Bot, BotOff, Phone, MoreVertical, Mic, Image,
-  CheckCheck, Check, Flame, AlertTriangle, User, Loader2, RefreshCw,
+  CheckCheck, Check, Flame, AlertTriangle, User, Loader2, RefreshCw, ArrowLeft,
 } from 'lucide-react';
 import { contactsApi, messagesApi, api } from '@/services/api';
 import { useUIStore } from '@/store/ui';
@@ -112,7 +112,14 @@ export default function ChatWindow() {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
+      <div className="flex items-center gap-2 px-3 py-3 border-b border-border bg-card">
+        {/* Back button — mobile only */}
+        <button
+          onClick={() => setSelectedContact(null)}
+          className="lg:hidden p-1.5 text-muted-foreground hover:text-foreground flex-shrink-0"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
         <Avatar name={selectedContact.name} phone={selectedContact.phone} size="md" />
 
         <div className="flex-1 min-w-0">

@@ -66,11 +66,11 @@ export default function AgentsPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex-1 overflow-y-auto p-4 lg:p-6">
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Header */}
-        <div>
+        <div className="pt-8 lg:pt-0">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Users className="w-6 h-6 text-primary" />
             Agents

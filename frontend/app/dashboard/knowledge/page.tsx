@@ -73,11 +73,11 @@ export default function KnowledgePage() {
   const totalChunks = items.reduce((s, i) => s + (i._count?.chunks ?? 0), 0);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex-1 overflow-y-auto p-4 lg:p-6">
       <div className="max-w-4xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-8 lg:pt-0">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Knowledge Base</h1>
             <p className="text-muted-foreground text-sm mt-1">

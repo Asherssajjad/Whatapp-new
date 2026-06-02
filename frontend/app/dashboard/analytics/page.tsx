@@ -45,15 +45,15 @@ export default function AnalyticsPage() {
   }));
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex-1 overflow-y-auto p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
+        <div className="pt-8 lg:pt-0">
           <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
           <p className="text-muted-foreground text-sm mt-1">Business performance overview</p>
         </div>
 
         {/* Stat Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
           {STAT_CARDS.map(card => (
             <div key={card.key} className="bg-card border border-border rounded-xl p-4 shadow-card">
               <div className="flex items-center gap-3 mb-3">
