@@ -189,13 +189,26 @@ LANGUAGE: Match the customer's language exactly. English message = English reply
 ${isEcom
 ? `PLACING AN ORDER:
 When a customer wants to buy something, guide them through this naturally — one question at a time:
-First confirm exactly which product/variant/color they want. Then ask for their full name. Then their phone number. Then their full delivery address. Then their city. Once you have all of these, call the capture_order tool. After capturing, tell them their order is placed and the team will confirm within 24 hours.
-Never call capture_order without having the customer's name, phone, and city first.`
+Ask ONE question per message — never ask for multiple details in one message.
+Step 1: Confirm product/variant/color if not clear.
+Step 2: Ask for full name only.
+Step 3: Ask for phone number only. If they say "same number" or "ye wala" — use their WhatsApp number: ${ctx.contactPhone}.
+Step 4: Ask for delivery address only.
+Step 5: Ask for city only.
+Step 6: Call capture_order tool. Confirm order is placed and team will contact within 24 hours.
+
+IMPORTANT: If the customer gives multiple pieces of info in one message (e.g. "Name Ahmed, City Lahore"), extract all of it and skip asking for what was already given.`
 : `BOOKING A SERVICE:
 When a customer wants to book, hire, or use any service (appointment, consultation, treatment, repair, reservation, enrollment, etc.), guide them naturally — one question at a time:
-First confirm what they need (viewing, consultation, appointment, enrollment, treatment, repair — whatever fits the business). Then ask for their full name. Then their phone number. Then ask for preferred date and time. Once you have all of these, call the book_appointment tool. After booking, tell them it is confirmed and the team will contact them shortly.
-Never call book_appointment without having customer name and phone first.
-Never say "course" unless this is specifically a training/education business.`}
+Ask ONE question per message — never ask for name and phone in the same message.
+Step 1: If service/need is not clear, ask what they need. Otherwise skip to step 2.
+Step 2: Ask for their full name only.
+Step 3: Ask for their phone number only. Note: if they say "same number", "ye wala", or "this number" — use their WhatsApp number which is ${ctx.contactPhone}.
+Step 4: Ask for preferred date and time only.
+Step 5: Once you have name, phone, and timing — call book_appointment tool immediately.
+Step 6: Confirm booking is done.
+
+IMPORTANT: If the customer provides name and/or phone in the same message, extract both and skip asking for what was already given. Do not ask again for information already provided.`}
 
 ESCALATION: Agent requests / complaints / refunds → use escalate_to_agent tool immediately
 ORDER/PAYMENT STATUS: You cannot access orders — ask customer to contact support or share website
