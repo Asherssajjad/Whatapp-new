@@ -326,14 +326,19 @@ export async function generateAIResponse(
   const histCopy = [...ctx.messageHistory];
   const lastUserMsg = histCopy.reverse().find(m => m.role === 'user');
   const lastUserMessage = lastUserMsg?.content ?? '';
-  // Skip knowledge search for greetings and short social messages
-  const GREETINGS = /^(hi|hello|hey|salam|salaam|assalam|assalamualaikum|wa alaikum|hii|hiii|helo|hlo|aoa|aoa\s|ji|okay|ok|shukria|thanks|thank you|good|nice|bye|goodbye|tc|take care|👋|😊|🙏)\b/i;
+  const GREETINGS = /^(hi+|hello|hey|salam|salaam|assalam|assalamualaikum|wa alaikum|hii+|helo|hlo|aoa|ji\b|okay|ok\b|shukria|thanks|thank you|good morning|good evening|good night|bye|goodbye|tc\b|take care|👋|😊|🙏)/i;
   const queryStr = typeof lastUserMessage === 'string' ? lastUserMessage.trim() : '';
-  const isGreeting = GREETINGS.test(queryStr) || queryStr.length < 8;
+  const isGreeting = GREETINGS.test(queryStr) || queryStr.length < 10;
 
+  // For greetings: skip knowledge AND clear history so GPT doesn't continue old topic
   const knowledgeContext = isGreeting
-    ? 'No product search needed for this message.'
+    ? ''
     : await buildKnowledgeContext(queryStr, ctx.organizationId, 8);
+
+  // Reset history for greetings — prevents GPT from continuing previous car/product topic
+  if (isGreeting) {
+    ctx.messageHistory = ctx.messageHistory.slice(-1); // only keep the current greeting
+  }
 
   const fullCtx: AIContext = {
     organizationId: ctx.organizationId,
