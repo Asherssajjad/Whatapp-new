@@ -4,6 +4,7 @@ import { login, refreshToken, getMe, changePassword, logout } from '../controlle
 import {
   getContacts, getContact, getMessages, sendManualMessage,
   toggleAI, deleteContact, updateContact, getAnalytics, getHandoffs,
+  getOrders, updateOrder, deleteOrder,
 } from '../controllers/chat.controller';
 import {
   getKnowledgeBases, ingestURL, ingestManual, deleteKnowledge, toggleKnowledge,
@@ -46,6 +47,11 @@ router.post('/contacts/:phone/toggle-ai', authenticate, toggleAI);
 router.post('/messages/send', authenticate, sendManualMessage);
 router.get('/analytics', authenticate, getAnalytics);
 router.get('/handoffs', authenticate, getHandoffs);
+
+// ─── Orders ────────────────────────────────────────────────────────────────────
+router.get('/orders', authenticate, getOrders);
+router.patch('/orders/:id', authenticate, updateOrder);
+router.delete('/orders/:id', authenticate, deleteOrder);
 
 // ─── Knowledge ─────────────────────────────────────────────────────────────────
 router.get('/knowledge', authenticate, getKnowledgeBases);

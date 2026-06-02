@@ -4,10 +4,24 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/dashboard/Sidebar';
 import { ToastContainer } from '@/components/ui/toast';
 import { useAuthStore } from '@/store/auth';
+import { useUIStore } from '@/store/ui';
 import { useSocket } from '@/hooks/useSocket';
+import { useQueryClient } from '@tanstack/react-query';
 
 function SocketInitializer() {
-  useSocket();
+  const socket = useSocket();
+  const { addNotification } = useUIStore();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on('order:new', (data: { productName: string; customerPhone: string }) => {
+      addNotification('success', `🛒 New Order: ${data.productName} from ${data.customerPhone}`);
+      void queryClient.invalidateQueries({ queryKey: ['orders'] });
+    });
+    return () => { socket.off('order:new'); };
+  }, [socket, addNotification, queryClient]);
+
   return null;
 }
 

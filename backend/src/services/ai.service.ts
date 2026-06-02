@@ -11,6 +11,25 @@ const AI_TOOLS: AITool[] = [
   {
     type: 'function',
     function: {
+      name: 'capture_order',
+      description: 'Use this when a customer wants to buy/order a product. Capture their order details.',
+      parameters: {
+        type: 'object',
+        required: ['productName', 'customerName'],
+        properties: {
+          productName: { type: 'string', description: 'Product the customer wants to order' },
+          quantity: { type: 'number', description: 'How many they want (default 1)' },
+          customerName: { type: 'string', description: 'Customer full name' },
+          pricePerItem: { type: 'number', description: 'Price per item if known from knowledge base' },
+          deliveryAddress: { type: 'string', description: 'Delivery address if provided' },
+          notes: { type: 'string', description: 'Any special notes or requests' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'update_contact_profile',
       description: 'Save or update the customer\'s name and/or email',
       parameters: {
@@ -166,9 +185,10 @@ INTENT DETECTION — handle each type correctly:
 - Greeting / general chat → respond warmly, offer help
 - Product question → use KNOWLEDGE BASE, share product name + price + link
 - Website request → share: ${website || 'not configured'}
-- Order status / delivery tracking → you cannot access order details, tell customer to check website or call support, then ask if they want to connect to an agent
+- "Lena hai" / "Order karna hai" / "Buy" / "Purchase" → use capture_order tool to record the order, then tell customer team will contact them to confirm
+- Order status / delivery tracking → you cannot access order details, tell customer to call or WhatsApp support directly
 - Complaint / return / refund → acknowledge, ask details, use escalate_to_agent tool
-- "Agent se baat karna hai" / "Human se baat karo" / escalation requests → IMMEDIATELY use escalate_to_agent tool, do not give product links
+- "Agent se baat karna hai" / "Human se baat karo" / escalation requests → IMMEDIATELY use escalate_to_agent tool
 - Appointment booking → use book_appointment tool
 
 Customer: ${ctx.contactName ?? 'Unknown'} (${ctx.contactPhone})
@@ -197,6 +217,32 @@ async function executeTool(
   const { organizationId, contactPhone, waService, conversationId } = ctx;
 
   switch (toolCall.function.name) {
+    case 'capture_order': {
+      const qty = Number(args['quantity']) || 1;
+      const price = Number(args['pricePerItem']) || 0;
+      const order = await prisma.order.create({
+        data: {
+          orderId: `ORD-${Date.now()}`,
+          customerName: String(args['customerName']),
+          phone: contactPhone,
+          items: [{ product: String(args['productName']), quantity: qty, price }],
+          total: qty * price,
+          status: 'PENDING',
+          notes: args['notes'] ? String(args['notes']) : undefined,
+          organizationId,
+        },
+      });
+      // Notify dashboard in real-time
+      getIO().to(organizationId).emit('order:new', {
+        order,
+        organizationId,
+        productName: String(args['productName']),
+        customerPhone: contactPhone,
+      });
+      console.log(`[Order] New order captured: ${String(args['productName'])} for ${contactPhone}`);
+      return `Order #${order.orderId} captured for ${String(args['customerName'])} — ${String(args['productName'])} x${qty}`;
+    }
+
     case 'update_contact_profile': {
       const updateData: { name?: string; email?: string } = {};
       if (args['name']) updateData.name = String(args['name']);
