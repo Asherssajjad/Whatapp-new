@@ -20,6 +20,21 @@ const navItems = [
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ];
 
+function MobileMenuButton() {
+  const { sidebarOpen, setSidebarOpen, selectedContact } = useUIStore();
+  // Hide hamburger on mobile when a chat is open — back arrow in chat header takes over
+  if (selectedContact) return null;
+  if (sidebarOpen) return null;
+  return (
+    <button
+      onClick={() => setSidebarOpen(true)}
+      className="fixed top-4 left-4 z-20 lg:hidden bg-card border border-border rounded-lg p-2 shadow-sm"
+    >
+      <Menu className="w-5 h-5 text-foreground" />
+    </button>
+  );
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -112,13 +127,8 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* Mobile toggle */}
-      <button
-        onClick={() => setSidebarOpen(true)}
-        className="fixed top-4 left-4 z-20 lg:hidden bg-card border border-border rounded-lg p-2 shadow-sm"
-      >
-        <Menu className="w-5 h-5 text-foreground" />
-      </button>
+      {/* Mobile toggle — hidden when chat is open (back button takes its place) */}
+      <MobileMenuButton />
     </>
   );
 }

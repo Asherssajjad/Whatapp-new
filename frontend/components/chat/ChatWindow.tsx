@@ -113,10 +113,10 @@ export default function ChatWindow() {
     <div className="flex-1 flex flex-col min-h-0 bg-background">
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-3 border-b border-border bg-card">
-        {/* Back button — mobile only */}
+        {/* Back button — mobile only, replaces the sidebar hamburger */}
         <button
           onClick={() => setSelectedContact(null)}
-          className="lg:hidden p-1.5 text-muted-foreground hover:text-foreground flex-shrink-0"
+          className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg text-foreground hover:bg-accent transition flex-shrink-0"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
