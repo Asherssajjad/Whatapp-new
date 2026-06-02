@@ -131,9 +131,9 @@ async function processMessage(
     },
   });
 
-  // Get or create conversation
+  // Get or create conversation — link by contactId so deleting+recreating contact starts fresh
   let conversation = await prisma.conversation.findFirst({
-    where: { phone: senderPhone, organizationId, isOpen: true },
+    where: { phone: senderPhone, organizationId, contactId: contact.id, isOpen: true },
     orderBy: { createdAt: 'desc' },
   });
 
@@ -146,7 +146,6 @@ async function processMessage(
         contactId: contact.id,
       },
     });
-    // Trigger new_contact automations
     await runAutomations('NEW_CONTACT', organizationId, { phone: senderPhone });
   }
 

@@ -163,7 +163,7 @@ export class WhatsAppService {
   async downloadMedia(mediaId: string): Promise<{ url: string; mimeType: string }> {
     const res = await axios.get(
       `${config.whatsapp.baseUrl}/${config.whatsapp.graphApiVersion}/${mediaId}`,
-      { headers: { Authorization: `Bearer ${this.client.defaults.headers?.Authorization}` } }
+      { headers: { Authorization: this.client.defaults.headers?.['Authorization'] } }
     );
     return { url: res.data.url, mimeType: res.data.mime_type };
   }
