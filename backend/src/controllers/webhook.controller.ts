@@ -263,10 +263,12 @@ async function processMessage(
   await runAutomations('KEYWORD_MATCH', organizationId, { phone: senderPhone, message: textContent });
 
   // Build message history
+  // Only last 20 messages AND within last 24h — prevents old bad responses from poisoning AI context
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const history = await prisma.message.findMany({
-    where: { conversationId: conversation.id },
+    where: { conversationId: conversation.id, createdAt: { gte: cutoff } },
     orderBy: { createdAt: 'asc' },
-    take: 30,
+    take: 20,
   });
 
   const messageHistory = history.map(m => ({
