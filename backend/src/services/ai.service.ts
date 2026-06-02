@@ -330,15 +330,10 @@ export async function generateAIResponse(
   const queryStr = typeof lastUserMessage === 'string' ? lastUserMessage.trim() : '';
   const isGreeting = GREETINGS.test(queryStr) || queryStr.length < 10;
 
-  // For greetings: skip knowledge AND clear history so GPT doesn't continue old topic
+  // Skip knowledge search for greetings — webhook controller already limits history for greetings
   const knowledgeContext = isGreeting
     ? ''
     : await buildKnowledgeContext(queryStr, ctx.organizationId, 8);
-
-  // Reset history for greetings — prevents GPT from continuing previous car/product topic
-  if (isGreeting) {
-    ctx.messageHistory = ctx.messageHistory.slice(-1); // only keep the current greeting
-  }
 
   const fullCtx: AIContext = {
     organizationId: ctx.organizationId,

@@ -270,10 +270,20 @@ async function processMessage(
     take: 20,
   });
 
-  const messageHistory = history.map(m => ({
+  const allHistory = history.map(m => ({
     role: (m.isFromBot ? 'assistant' : 'user') as 'user' | 'assistant',
     content: m.transcription ?? m.content,
   }));
+
+  // If message is a greeting or very short — pass ONLY the current message to AI
+  // This prevents AI from continuing previous product/topic discussion on a fresh greeting
+  const IS_GREETING = /^(hi+|hello|hey|salam|salaam|assalam|wa alaikum|hii+|helo|aoa|ji\b|okay|ok\b|thanks|bye|👋|😊|🙏)/i;
+  const isNewGreeting = IS_GREETING.test(textContent.trim()) || textContent.trim().length < 10;
+  const messageHistory = isNewGreeting
+    ? [{ role: 'user' as const, content: textContent }]
+    : allHistory;
+
+  if (isNewGreeting) console.log(`[Webhook] 🔄 Greeting detected — fresh context for: "${textContent.trim()}"`);
 
   // Get agents and social links for context
   const agents = await prisma.agent.findMany({ where: { organizationId } });

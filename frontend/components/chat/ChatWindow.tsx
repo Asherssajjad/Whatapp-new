@@ -3,9 +3,9 @@ import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Send, Bot, BotOff, Phone, MoreVertical, Mic, Image,
-  CheckCheck, Check, Flame, AlertTriangle, User, Loader2,
+  CheckCheck, Check, Flame, AlertTriangle, User, Loader2, RefreshCw,
 } from 'lucide-react';
-import { contactsApi, messagesApi } from '@/services/api';
+import { contactsApi, messagesApi, api } from '@/services/api';
 import { useUIStore } from '@/store/ui';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import { cn, formatTime, leadScoreColor, statusBadgeClass } from '@/lib/utils';
 import type { Message, PaginatedResult } from '@/types';
 
 export default function ChatWindow() {
-  const { selectedContact, addNotification } = useUIStore();
+  const { selectedContact, setSelectedContact, addNotification } = useUIStore();
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -45,6 +45,17 @@ export default function ChatWindow() {
       void queryClient.invalidateQueries({ queryKey: ['contacts'] });
       addNotification('success', `AI ${(res.data as { aiEnabled: boolean }).aiEnabled ? 'enabled' : 'disabled'}`);
     },
+  });
+
+  const resetChatMutation = useMutation({
+    mutationFn: () => api.delete(`/contacts/${selectedContact!.phone}`),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      void queryClient.invalidateQueries({ queryKey: ['messages', selectedContact?.phone] });
+      setSelectedContact(null);
+      addNotification('success', 'Chat history cleared — bot will start fresh on next message');
+    },
+    onError: () => addNotification('error', 'Failed to reset chat'),
   });
 
   useEffect(() => {
@@ -138,8 +149,19 @@ export default function ChatWindow() {
           >
             {selectedContact.aiEnabled ? <Bot className="w-5 h-5" /> : <BotOff className="w-5 h-5" />}
           </Button>
-          <Button variant="ghost" size="icon" title="Call">
-            <Phone className="w-5 h-5" />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              if (confirm('Clear chat history? Bot will start fresh on next message.')) {
+                resetChatMutation.mutate();
+              }
+            }}
+            disabled={resetChatMutation.isPending}
+            title="Reset chat — clears history so bot starts fresh"
+            className="text-muted-foreground hover:text-orange-500"
+          >
+            {resetChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
           </Button>
           <Button variant="ghost" size="icon">
             <MoreVertical className="w-5 h-5" />
