@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Send, Bot, BotOff, Phone, MoreVertical, Mic, Image,
@@ -47,13 +47,18 @@ export default function ChatWindow() {
     },
   });
 
+  const refreshChat = () => {
+    void queryClient.invalidateQueries({ queryKey: ['messages', selectedContact?.phone] });
+    void queryClient.invalidateQueries({ queryKey: ['contacts'] });
+  };
+
   const resetChatMutation = useMutation({
     mutationFn: () => api.delete(`/contacts/${selectedContact!.phone}`),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['contacts'] });
       void queryClient.invalidateQueries({ queryKey: ['messages', selectedContact?.phone] });
       setSelectedContact(null);
-      addNotification('success', 'Chat history cleared — bot will start fresh on next message');
+      addNotification('success', 'Chat history cleared');
     },
     onError: () => addNotification('error', 'Failed to reset chat'),
   });
@@ -159,16 +164,11 @@ export default function ChatWindow() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              if (confirm('Clear chat history? Bot will start fresh on next message.')) {
-                resetChatMutation.mutate();
-              }
-            }}
-            disabled={resetChatMutation.isPending}
-            title="Reset chat — clears history so bot starts fresh"
-            className="text-muted-foreground hover:text-orange-500"
+            onClick={refreshChat}
+            title="Refresh messages"
+            className="text-muted-foreground hover:text-foreground"
           >
-            {resetChatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            <RefreshCw className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="icon">
             <MoreVertical className="w-5 h-5" />
@@ -231,6 +231,42 @@ export default function ChatWindow() {
   );
 }
 
+function MessageText({ content, isBot }: { content: string; isBot: boolean }) {
+  // Parse content: convert [text](url) to links, plain URLs to links
+  const parts: React.ReactNode[] = [];
+  const linkColor = isBot ? 'text-emerald-900 dark:text-emerald-300 underline' : 'text-blue-600 dark:text-blue-400 underline';
+
+  // Combined regex: markdown links OR plain URLs
+  const regex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|(https?:\/\/[^\s]+)/g;
+  let last = 0;
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    if (match.index > last) {
+      parts.push(content.slice(last, match.index));
+    }
+    if (match[1] && match[2]) {
+      // Markdown link [text](url)
+      parts.push(
+        <a key={match.index} href={match[2]} target="_blank" rel="noreferrer" className={linkColor}>
+          {match[2]}
+        </a>
+      );
+    } else if (match[3]) {
+      // Plain URL
+      parts.push(
+        <a key={match.index} href={match[3]} target="_blank" rel="noreferrer" className={linkColor}>
+          {match[3]}
+        </a>
+      );
+    }
+    last = match.index + match[0].length;
+  }
+  if (last < content.length) parts.push(content.slice(last));
+
+  return <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">{parts}</p>;
+}
+
 function MessageBubble({ msg, prevMsg }: { msg: Message; prevMsg?: Message }) {
   const isBot = msg.isFromBot || msg.direction === 'OUTBOUND';
   const showTime = !prevMsg || new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() > 300000;
@@ -278,7 +314,7 @@ function MessageBubble({ msg, prevMsg }: { msg: Message; prevMsg?: Message }) {
               <span>Image</span>
             </div>
           )}
-          <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
+          <MessageText content={msg.content} isBot={isBot} />
           <div className={cn('flex items-center gap-1 mt-0.5', isBot ? 'justify-end' : 'justify-start')}>
             <span className="text-[10px] opacity-55">{formatTime(msg.createdAt)}</span>
             {isBot && (
