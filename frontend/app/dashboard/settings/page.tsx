@@ -42,7 +42,7 @@ export default function SettingsPage() {
       const orgsRes = await api.get('/admin/organizations');
       const orgId = orgsRes.data[0]?.id;
       if (!orgId) throw new Error('No organization found');
-      return api.patch(`/admin/organizations/${orgId}`, { name: orgName, websiteUrl, specialInstructions });
+      return api.put(`/admin/organizations/${orgId}`, { name: orgName, websiteUrl, specialInstructions });
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['org-settings'] });

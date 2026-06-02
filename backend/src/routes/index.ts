@@ -83,9 +83,10 @@ router.delete('/agents/:id', authenticate, deleteAgent);
 
 // ─── Admin ─────────────────────────────────────────────────────────────────────
 router.get('/admin/stats', authenticate, requireRole('SUPER_ADMIN'), getSystemStats);
-router.get('/admin/organizations', authenticate, requireRole('SUPER_ADMIN'), getOrganizations);
+router.get('/admin/organizations', authenticate, getOrganizations);
 router.post('/admin/organizations', authenticate, requireRole('SUPER_ADMIN'), createOrganization);
-router.put('/admin/organizations/:id', authenticate, requireRole('SUPER_ADMIN'), updateOrganization);
+router.put('/admin/organizations/:id', authenticate, updateOrganization);
+router.patch('/admin/organizations/:id', authenticate, updateOrganization);
 router.delete('/admin/organizations/:id', authenticate, requireRole('SUPER_ADMIN'), deleteOrganization);
 router.get('/admin/users', authenticate, requireRole('SUPER_ADMIN'), getUsers);
 router.post('/admin/users', authenticate, requireRole('SUPER_ADMIN'), createUser);
