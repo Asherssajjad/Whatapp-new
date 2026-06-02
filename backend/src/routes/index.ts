@@ -5,6 +5,7 @@ import {
   getContacts, getContact, getMessages, sendManualMessage,
   toggleAI, deleteContact, updateContact, getAnalytics, getHandoffs,
   getOrders, updateOrder, deleteOrder,
+  getAppointments, updateAppointment, deleteAppointment,
 } from '../controllers/chat.controller';
 import {
   getKnowledgeBases, ingestURL, ingestManual, deleteKnowledge, toggleKnowledge,
@@ -52,6 +53,11 @@ router.get('/handoffs', authenticate, getHandoffs);
 router.get('/orders', authenticate, getOrders);
 router.patch('/orders/:id', authenticate, updateOrder);
 router.delete('/orders/:id', authenticate, deleteOrder);
+
+// ─── Appointments ──────────────────────────────────────────────────────────────
+router.get('/appointments', authenticate, getAppointments);
+router.patch('/appointments/:id', authenticate, updateAppointment);
+router.delete('/appointments/:id', authenticate, deleteAppointment);
 
 // ─── Knowledge ─────────────────────────────────────────────────────────────────
 router.get('/knowledge', authenticate, getKnowledgeBases);

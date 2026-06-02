@@ -19,7 +19,11 @@ function SocketInitializer() {
       addNotification('success', `🛒 New Order: ${data.productName} from ${data.customerPhone}`);
       void queryClient.invalidateQueries({ queryKey: ['orders'] });
     });
-    return () => { socket.off('order:new'); };
+    socket.on('appointment:new', (data: { customerName: string; customerPhone: string }) => {
+      addNotification('success', `📅 New Appointment: ${data.customerName} (${data.customerPhone})`);
+      void queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    });
+    return () => { socket.off('order:new'); socket.off('appointment:new'); };
   }, [socket, addNotification, queryClient]);
 
   return null;

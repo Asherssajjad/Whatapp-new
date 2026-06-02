@@ -266,6 +266,40 @@ export async function getHandoffs(req: AuthRequest, res: Response): Promise<void
   res.json(contacts);
 }
 
+export async function getAppointments(req: AuthRequest, res: Response): Promise<void> {
+  const orgId = req.user!.organizationId!;
+  const { status, page = '1', limit = '50' } = req.query;
+  const take = Math.min(Number(limit), 100);
+  const skip = (Number(page) - 1) * take;
+
+  const where = { organizationId: orgId, ...(status && { status: String(status) as never }) };
+  const [appointments, total] = await Promise.all([
+    prisma.appointment.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }),
+    prisma.appointment.count({ where }),
+  ]);
+  res.json({ data: appointments, total, page: Number(page), limit: take, hasMore: skip + take < total });
+}
+
+export async function updateAppointment(req: AuthRequest, res: Response): Promise<void> {
+  const orgId = req.user!.organizationId!;
+  const { id } = req.params as { id: string };
+  const { status, notes } = req.body as { status?: string; notes?: string };
+
+  const updated = await prisma.appointment.updateMany({
+    where: { id, organizationId: orgId },
+    data: { ...(status && { status: status as never }), ...(notes !== undefined && { notes }) },
+  });
+  if (updated.count === 0) { res.status(404).json({ error: 'Not found' }); return; }
+  res.json({ message: 'Appointment updated' });
+}
+
+export async function deleteAppointment(req: AuthRequest, res: Response): Promise<void> {
+  const orgId = req.user!.organizationId!;
+  const { id } = req.params as { id: string };
+  await prisma.appointment.deleteMany({ where: { id, organizationId: orgId } });
+  res.json({ message: 'Deleted' });
+}
+
 export async function getOrders(req: AuthRequest, res: Response): Promise<void> {
   const orgId = req.user!.organizationId!;
   const { status, page = '1', limit = '50' } = req.query;

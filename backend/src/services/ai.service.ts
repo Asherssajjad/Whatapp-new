@@ -185,8 +185,10 @@ INTENT DETECTION — handle each type correctly:
 - Greeting / general chat → respond warmly, offer help
 - Product question → use KNOWLEDGE BASE, share product name + price + link
 - Website request → share: ${website || 'not configured'}
-- "Lena hai" / "Order karna hai" / "Buy" / "Purchase" → use capture_order tool to record the order, then tell customer team will contact them to confirm
-- Order status / delivery tracking → you cannot access order details, tell customer to call or WhatsApp support directly
+${ctx.businessType === 'ECOMMERCE'
+  ? '- "Lena hai" / "Order karna hai" / "Buy" / "Purchase" / "Kharidna hai" → use capture_order tool, then tell customer team will contact to confirm\n- Order status / delivery tracking → cannot access order details, ask customer to contact support'
+  : '- "Seekhna hai" / "Join karna hai" / "Register karna hai" / "Enroll karna hai" / "Interested hoon" → use book_appointment tool to record enrollment interest\n- For services/courses: when customer shows interest, use book_appointment to capture their details'
+}
 - Complaint / return / refund → acknowledge, ask details, use escalate_to_agent tool
 - "Agent se baat karna hai" / "Human se baat karo" / escalation requests → IMMEDIATELY use escalate_to_agent tool
 - Appointment booking → use book_appointment tool
@@ -259,16 +261,24 @@ async function executeTool(
     }
 
     case 'book_appointment': {
+      const dateTimeStr = String(args['dateTime'] ?? new Date().toISOString());
       const appt = await prisma.appointment.create({
         data: {
-          customerName: String(args['customerName']),
+          customerName: String(args['customerName'] ?? contactPhone),
           phone: contactPhone,
-          dateTime: new Date(String(args['dateTime'])),
+          dateTime: new Date(dateTimeStr),
           notes: args['notes'] ? String(args['notes']) : undefined,
           organizationId,
         },
       });
-      return `Appointment booked for ${appt.customerName} on ${appt.dateTime.toISOString()}`;
+      getIO().to(organizationId).emit('appointment:new', {
+        appointment: appt,
+        organizationId,
+        customerName: appt.customerName,
+        customerPhone: contactPhone,
+      });
+      console.log(`[Appointment] New booking: ${appt.customerName} (${contactPhone})`);
+      return `Appointment recorded for ${appt.customerName}. Team will contact to confirm timing.`;
     }
 
     case 'send_buttons': {
