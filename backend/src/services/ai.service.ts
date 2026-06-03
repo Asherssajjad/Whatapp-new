@@ -3,11 +3,26 @@ import { chatCompletion, analyzeImage } from './openai.service';
 import { buildKnowledgeContext } from './vector.service';
 import { createWAService } from './whatsapp.service';
 import { getIO } from './socket.service';
+import { lookupOrderByName, lookupOrdersByPhone, formatOrderForWhatsApp } from './shopify.service';
 import type { AIContext, AITool, AIToolCall } from '../types';
 
 // ─── Tool Definitions ──────────────────────────────────────────────────────────
 
 const AI_TOOLS: AITool[] = [
+  {
+    type: 'function',
+    function: {
+      name: 'lookup_order',
+      description: 'Look up a real Shopify order by order number (#1234) or customer phone number. Use when customer asks about their order status, delivery, or tracking.',
+      parameters: {
+        type: 'object',
+        properties: {
+          orderNumber: { type: 'string', description: 'Order number like #1234 or 1234' },
+          phone: { type: 'string', description: 'Customer phone number to look up orders' },
+        },
+      },
+    },
+  },
   {
     type: 'function',
     function: {
@@ -212,11 +227,11 @@ Step 6: Confirm booking is done.
 
 CRITICAL: If customer provides name + phone + timing in one message, extract all and call book_appointment immediately. Do NOT ask for details already given.`}
 
+ORDER STATUS / TRACKING: When customer asks about their order status, delivery, or tracking — use lookup_order tool. You CAN look up real orders. Ask for order number (#1234) if not provided, or use their phone number automatically.
+
 ESCALATION: Agent requests / complaints / "kisi se baat karni hai" / "insaan ka number do" / "human chahiye" → use escalate_to_agent tool IMMEDIATELY regardless of what else is happening. Do NOT repeat order details when customer asks for an agent.
 
 POST-ORDER/BOOKING: Once an order or booking is confirmed, do NOT repeat it again unless customer specifically asks. Move on and respond to whatever the customer says next.
-
-ORDER/PAYMENT STATUS: You cannot access orders — share website or agent contact.
 
 Customer: ${ctx.contactName ?? 'Unknown'} (${ctx.contactPhone})
 
@@ -246,6 +261,37 @@ async function executeTool(
   const { organizationId, contactPhone, waService, conversationId } = ctx;
 
   switch (toolCall.function.name) {
+    case 'lookup_order': {
+      // Get Shopify credentials from org
+      const org = await prisma.organization.findUnique({ where: { id: organizationId } });
+      if (!org?.shopifyShop || !org?.shopifyToken) {
+        return 'Shopify is not connected. Please contact support for order information.';
+      }
+
+      let order = null;
+
+      if (args['orderNumber']) {
+        order = await lookupOrderByName(org.shopifyShop, org.shopifyToken, String(args['orderNumber']));
+      }
+
+      if (!order && args['phone']) {
+        const orders = await lookupOrdersByPhone(org.shopifyShop, org.shopifyToken, String(args['phone']));
+        order = orders[0] ?? null;
+      }
+
+      if (!order && !args['orderNumber']) {
+        // Try with customer's WhatsApp phone
+        const orders = await lookupOrdersByPhone(org.shopifyShop, org.shopifyToken, contactPhone);
+        order = orders[0] ?? null;
+      }
+
+      if (!order) {
+        return 'No order found with that information. Please check the order number and try again.';
+      }
+
+      return formatOrderForWhatsApp(order);
+    }
+
     case 'capture_order': {
       const qty = Number(args['quantity']) || 1;
       const price = Number(args['pricePerItem']) || 0;

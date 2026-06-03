@@ -34,6 +34,10 @@ app.post('/webhook', (req, res) => { void import('./controllers/webhook.controll
 // Health check
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
+// ─── Shopify OAuth ────────────────────────────────────────────────────────────
+app.get('/shopify/install', (req, res) => { void import('./controllers/shopify.controller').then(m => m.shopifyInstall(req, res)); });
+app.get('/shopify/callback', (req, res) => { void import('./controllers/shopify.controller').then(m => m.shopifyCallback(req, res)); });
+
 // 404
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
 

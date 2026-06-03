@@ -157,6 +157,8 @@ model Organization {
   messageLimit        Int          @default(10000)
   messageCount        Int          @default(0)
   isActive            Boolean      @default(true)
+  shopifyShop         String?
+  shopifyToken        String?
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
