@@ -47,7 +47,7 @@ export default function AnalyticsPage() {
   return (
     <div className="flex-1 overflow-y-auto p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="pt-14 lg:pt-0">
+        <div className="pt-0">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Analytics</h1>
           <p className="text-muted-foreground text-sm mt-1">Business performance overview</p>
         </div>

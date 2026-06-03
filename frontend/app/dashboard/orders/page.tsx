@@ -76,7 +76,7 @@ export default function OrdersPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="px-3 sm:px-4 lg:px-6 pt-14 sm:pt-14 lg:pt-4 pb-3 border-b border-border bg-card">
+      <div className="px-3 sm:px-4 lg:px-6 pt-4 pb-3 border-b border-border bg-card">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-foreground flex items-center gap-2">

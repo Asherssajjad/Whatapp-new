@@ -77,7 +77,7 @@ export default function KnowledgePage() {
       <div className="max-w-4xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between pt-14 lg:pt-0">
+        <div className="flex items-center justify-between pt-0">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Knowledge Base</h1>
             <p className="text-muted-foreground text-sm mt-1">

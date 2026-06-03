@@ -70,7 +70,7 @@ export default function AgentsPage() {
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="pt-14 lg:pt-0">
+        <div className="pt-0">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Users className="w-6 h-6 text-primary" />
             Agents
