@@ -275,11 +275,13 @@ async function processMessage(
     content: m.transcription ?? m.content,
   }));
 
-  // Detect if bot has been giving the same response in a loop — reset context
+  // Detect if bot has been giving the same/similar response in a loop — reset context
   const recentBotMsgs = allHistory.filter(m => m.role === 'assistant').slice(-3).map(m => m.content);
-  const isStuckInLoop = recentBotMsgs.length >= 2 && recentBotMsgs.every(m => m === recentBotMsgs[0]);
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9؀-ۿ]/g, '').slice(0, 50);
+  const isStuckInLoop = recentBotMsgs.length >= 2 &&
+    recentBotMsgs.slice(-2).every(m => normalize(m) === normalize(recentBotMsgs[recentBotMsgs.length - 1] ?? ''));
   if (isStuckInLoop) {
-    console.warn(`[Webhook] ⚠️ Bot stuck in response loop — clearing history`);
+    console.warn(`[Webhook] ⚠️ Bot stuck in loop (fuzzy match) — clearing history`);
   }
 
   // If message is a greeting or very short — pass ONLY the current message to AI

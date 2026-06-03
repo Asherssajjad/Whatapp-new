@@ -245,7 +245,7 @@ export async function scrapeEcommerce(req: AuthRequest, res: Response): Promise<
         const $ = cheerio.load(html);
         const text = extractPageText($);
         if (text.length < 80) continue;
-        const pageTitle = $('title').text().trim() || $('h1').first().text().trim() || pageUrl;
+        const pageTitle = ($('title').text() || $('h1').first().text() || pageUrl).replace(/\s*\|\s*.{0,80}$/, '').replace(/\s+/g, ' ').trim();
 
         const existing = await prisma.knowledge.findFirst({ where: { sourceUrl: pageUrl, organizationId: orgId } });
         if (existing) continue;
@@ -263,7 +263,12 @@ export async function scrapeEcommerce(req: AuthRequest, res: Response): Promise<
         if (!html) continue;
 
         const $ = cheerio.load(html);
-        const catTitle = ($('title').text() || $('h1').first().text() || catUrl.split('/').pop()?.replace(/-/g, ' ') || 'Products').replace(/\s+/g, ' ').trim();
+        const rawTitle = $('title').text() || $('h1').first().text() || catUrl.split('/').pop()?.replace(/-/g, ' ') || 'Products';
+        // Remove payment processor names, pipe-separated junk, and SEO site name suffixes
+        const catTitle = rawTitle
+          .replace(/\s*\|\s*.{0,60}$/, '') // remove " | Site Name" suffix
+          .replace(/(American Express|Apple Pay|Diners Club|Discover|Google Pay|JCB|Mastercard|Visa|PayPal|Stripe|Mada|STC Pay)/gi, '')
+          .replace(/\s+/g, ' ').trim().slice(0, 150) || 'Products';
         const products = extractProductsFromHtml(html, catUrl, origin);
 
         if (products.length === 0) {
@@ -324,7 +329,7 @@ export async function scrapeServices(req: AuthRequest, res: Response): Promise<v
         const text = extractPageText($);
         if (text.length < 80) continue;
 
-        const pageTitle = $('title').text().trim() || $('h1').first().text().trim() || pageUrl;
+        const pageTitle = ($('title').text() || $('h1').first().text() || pageUrl).replace(/\s*\|\s*.{0,80}$/, '').replace(/\s+/g, ' ').trim();
         const existing = await prisma.knowledge.findFirst({ where: { sourceUrl: pageUrl, organizationId: orgId } });
         if (!existing) {
           const knowledge = await prisma.knowledge.create({
