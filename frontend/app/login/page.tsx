@@ -94,12 +94,12 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right form panel ── */}
-      <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-950 p-6 sm:p-12">
+      <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-950 p-4 sm:p-8 lg:p-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: 'easeOut' }}
-          className="w-full max-w-[380px]"
+          className="w-full max-w-[360px] sm:max-w-[380px]"
         >
           {/* Mobile logo */}
           <div className="flex items-center gap-2.5 mb-10 lg:hidden">

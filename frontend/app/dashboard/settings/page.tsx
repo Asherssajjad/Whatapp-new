@@ -67,8 +67,8 @@ export default function SettingsPage() {
   return (
     <div className="flex-1 overflow-y-auto p-4 lg:p-6">
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="pt-8 lg:pt-0">
-          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <div className="pt-14 lg:pt-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Settings</h1>
           <p className="text-muted-foreground text-sm mt-1">Configure your AI bot and account</p>
         </div>
 

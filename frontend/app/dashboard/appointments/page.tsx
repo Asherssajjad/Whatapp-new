@@ -64,7 +64,7 @@ export default function AppointmentsPage() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="px-4 lg:px-6 pt-12 lg:pt-4 pb-4 border-b border-border bg-card">
+      <div className="px-3 sm:px-4 lg:px-6 pt-14 sm:pt-14 lg:pt-4 pb-3 border-b border-border bg-card">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -150,7 +150,7 @@ export default function AppointmentsPage() {
                     </p>
                   )}
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     {next && (
                       <Button
                         size="sm"

@@ -70,7 +70,7 @@ export default function AgentsPage() {
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="pt-8 lg:pt-0">
+        <div className="pt-14 lg:pt-0">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Users className="w-6 h-6 text-primary" />
             Agents
@@ -139,7 +139,7 @@ export default function AgentsPage() {
                 </div>
 
                 {editId === agent.id ? (
-                  <div className="flex-1 flex items-center gap-2 flex-wrap">
+                  <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <Input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 min-w-32 h-8 text-sm" />
                     <Input value={editPhone} onChange={e => setEditPhone(e.target.value)} className="flex-1 min-w-32 h-8 text-sm" />
                     <button onClick={() => updateMutation.mutate({ id: agent.id, data: { name: editName, phone: editPhone } })} className="text-green-500 hover:text-green-600">

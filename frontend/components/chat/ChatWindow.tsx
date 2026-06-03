@@ -82,9 +82,9 @@ export default function ChatWindow() {
         </div>
 
         {/* Feature grid — fills the space */}
-        <div className="flex-1 p-6">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">What this bot can do</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-3">
+        <div className="flex-1 p-3 sm:p-6">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">What this bot can do</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {[
               { icon: Bot, label: 'GPT-4o AI Replies', desc: 'Automatically responds to customer messages using your knowledge base and AI context.', color: 'text-green-500', bg: 'bg-green-500/10' },
               { icon: Flame, label: 'Hot Lead Detection', desc: 'Scores every contact by engagement level and flags hot prospects for your sales team.', color: 'text-orange-500', bg: 'bg-orange-500/10' },
@@ -177,7 +177,7 @@ export default function ChatWindow() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-1"
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-1"
         style={{ background: 'hsl(var(--background))' }}
       >
         {loadingMessages ? (

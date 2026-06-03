@@ -47,8 +47,8 @@ export default function AnalyticsPage() {
   return (
     <div className="flex-1 overflow-y-auto p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="pt-8 lg:pt-0">
-          <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+        <div className="pt-14 lg:pt-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Analytics</h1>
           <p className="text-muted-foreground text-sm mt-1">Business performance overview</p>
         </div>
 
@@ -98,8 +98,8 @@ export default function AnalyticsPage() {
                 No tags yet
               </div>
             ) : (
-              <div className="flex items-center gap-4">
-                <ResponsiveContainer width="60%" height={200}>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <ResponsiveContainer width="100%" height={160} className="sm:!w-[60%]">
                   <PieChart>
                     <Pie data={data.topTagsByContact} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80}>
                       {data.topTagsByContact.map((entry, i) => (

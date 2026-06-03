@@ -76,7 +76,7 @@ export default function OrdersPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="px-4 lg:px-6 pt-12 lg:pt-4 pb-4 border-b border-border bg-card">
+      <div className="px-3 sm:px-4 lg:px-6 pt-14 sm:pt-14 lg:pt-4 pb-3 border-b border-border bg-card">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -92,7 +92,7 @@ export default function OrdersPage() {
           </div>
         </div>
         {/* Status filter */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-1.5 flex-wrap">
           {(['', 'PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'] as const).map(s => (
             <button
               key={s}
@@ -187,7 +187,7 @@ export default function OrdersPage() {
                   )}
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     {next && (
                       <Button
                         size="sm"
