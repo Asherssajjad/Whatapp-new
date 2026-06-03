@@ -275,13 +275,18 @@ async function processMessage(
     content: m.transcription ?? m.content,
   }));
 
-  // Detect if bot has been giving the same/similar response in a loop — reset context
+  // Detect loop — similar responses OR order confirmation repeated
   const recentBotMsgs = allHistory.filter(m => m.role === 'assistant').slice(-3).map(m => m.content);
   const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9؀-ۿ]/g, '').slice(0, 50);
-  const isStuckInLoop = recentBotMsgs.length >= 2 &&
+  const isExactLoop = recentBotMsgs.length >= 2 &&
     recentBotMsgs.slice(-2).every(m => normalize(m) === normalize(recentBotMsgs[recentBotMsgs.length - 1] ?? ''));
+  // Also detect order confirmation loop — bot keeps saying "order place ho gaya"
+  const ORDER_CONFIRM_PHRASES = ['order place ho gaya', 'order successfully place', 'order capture ho gaya', 'hamari team aap se'];
+  const isOrderLoop = recentBotMsgs.length >= 2 &&
+    recentBotMsgs.slice(-2).every(m => ORDER_CONFIRM_PHRASES.some(p => m.toLowerCase().includes(p)));
+  const isStuckInLoop = isExactLoop || isOrderLoop;
   if (isStuckInLoop) {
-    console.warn(`[Webhook] ⚠️ Bot stuck in loop (fuzzy match) — clearing history`);
+    console.warn(`[Webhook] ⚠️ Bot stuck in loop — clearing history`);
   }
 
   // If message is a greeting or very short — pass ONLY the current message to AI
