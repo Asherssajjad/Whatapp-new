@@ -244,13 +244,16 @@ function MessageText({ content, isBot }: { content: string; isBot: boolean }) {
       /\[([^\]]*)\]\((https?:\/\/[^)]+)\)|(https?:\/\/[^\s<"&]+)/g,
       (_match, _mdText, mdUrl, plainUrl) => {
         const url = (mdUrl ?? plainUrl) as string;
-        return `<a href="${url}" target="_blank" rel="noreferrer" class="${linkCls}">${url}</a>`;
+        // Shorten long URLs for display
+        const display = url.length > 40 ? url.slice(0, 37) + '...' : url;
+        return `<a href="${url}" target="_blank" rel="noreferrer" class="${linkCls}" style="word-break:break-all">${display}</a>`;
       }
     );
 
   return (
     <p
-      className="break-words leading-relaxed text-sm whitespace-pre-wrap"
+      className="leading-relaxed text-sm"
+      style={{ wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}
       dangerouslySetInnerHTML={{ __html: html }} // eslint-disable-line react/no-danger
     />
   );
@@ -269,7 +272,7 @@ function MessageBubble({ msg, prevMsg }: { msg: Message; prevMsg?: Message }) {
           </span>
         </div>
       )}
-      <div className={cn('flex gap-2 max-w-[80%]', isBot ? 'ml-auto flex-row-reverse' : '')}>
+      <div className={cn('flex gap-2 max-w-[88%] sm:max-w-[78%]', isBot ? 'ml-auto flex-row-reverse' : '')}>
         {!isBot && (
           <div className="w-7 h-7 bg-accent rounded-full flex items-center justify-center flex-shrink-0 mt-1">
             <User className="w-4 h-4 text-muted-foreground" />

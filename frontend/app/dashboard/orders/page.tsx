@@ -92,7 +92,7 @@ export default function OrdersPage() {
           </div>
         </div>
         {/* Status filter */}
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {(['', 'PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'] as const).map(s => (
             <button
               key={s}

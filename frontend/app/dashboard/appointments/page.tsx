@@ -79,7 +79,7 @@ export default function AppointmentsPage() {
             <p className="text-muted-foreground text-sm">{total} total</p>
           </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {(['', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'] as const).map(s => (
             <button
               key={s}

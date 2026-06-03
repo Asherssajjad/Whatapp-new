@@ -53,7 +53,7 @@ export default function ContactList() {
       </div>
 
       {/* Filters */}
-      <div className="px-3 py-2 flex gap-1 border-b border-border overflow-x-auto scrollbar-none">
+      <div className="px-3 py-2 flex gap-1.5 border-b border-border overflow-x-auto scrollbar-none flex-nowrap">
         {FILTERS.map(f => (
           <button
             key={f.value}
