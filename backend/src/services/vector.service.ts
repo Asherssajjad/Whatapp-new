@@ -2,8 +2,8 @@ import { prisma } from '../lib/prisma';
 import { generateEmbedding } from './openai.service';
 import type { VectorSearchResult } from '../types';
 
-const CHUNK_SIZE = 1000;
-const CHUNK_OVERLAP = 150;
+const CHUNK_SIZE = 1500;
+const CHUNK_OVERLAP = 200;
 
 // ─── Text Chunking ─────────────────────────────────────────────────────────────
 

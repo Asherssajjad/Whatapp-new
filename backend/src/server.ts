@@ -41,30 +41,35 @@ async function bootstrap(): Promise<void> {
     // 3b. Trim any whitespace from phoneNumberId values (env var copy-paste artifact)
     await prisma.$executeRaw`UPDATE "WhatsAppNumber" SET "phoneNumberId" = TRIM("phoneNumberId") WHERE "phoneNumberId" != TRIM("phoneNumberId")`.catch(() => null);
 
-    // 4. Seed primary organization
-    if (config.seed.orgName && config.seed.phoneNumberId && config.seed.accessToken) {
+    // 4. Seed primary organization — always use existing WA number's org if it exists
+    if (config.seed.phoneNumberId && config.seed.accessToken) {
       try {
-        let org = await prisma.organization.findFirst({ where: { name: config.seed.orgName } });
-        if (!org) {
-          org = await prisma.organization.create({
-            data: {
-              name: config.seed.orgName,
-              businessType: (config.seed.businessType as never) ?? 'GENERAL',
-              specialInstructions: config.seed.specialInstructions,
-            },
-          });
-          console.log(`✅ Org created: ${org.name}`);
-        }
-
+        // Check if number already exists — if so, use its org (avoids creating duplicate orgs)
         const existingNum = await prisma.whatsAppNumber.findUnique({
-          where: { phoneNumberId: config.seed.phoneNumberId },
+          where: { phoneNumberId: config.seed.phoneNumberId.trim() },
+          include: { organization: true },
         });
-        if (!existingNum) {
+
+        let org = existingNum?.organization ?? null;
+
+        if (!org) {
+          // Only create new org if number doesn't exist yet
+          const orgName = config.seed.orgName ?? 'My Business';
+          org = await prisma.organization.findFirst({ where: { name: orgName } }) ??
+            await prisma.organization.create({
+              data: {
+                name: orgName,
+                businessType: (config.seed.businessType as never) ?? 'GENERAL',
+                specialInstructions: config.seed.specialInstructions,
+              },
+            });
+          console.log(`✅ Org ready: ${org.name}`);
+
           await prisma.whatsAppNumber.create({
             data: {
               label: 'Primary',
-              phoneNumberId: config.seed.phoneNumberId,
-              accessToken: config.seed.accessToken,
+              phoneNumberId: config.seed.phoneNumberId.trim(),
+              accessToken: config.seed.accessToken.trim(),
               wabaId: config.seed.wabaId ?? '',
               isPrimary: true,
               organizationId: org.id,
