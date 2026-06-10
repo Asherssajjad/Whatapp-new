@@ -277,24 +277,34 @@ async function processMessage(
     content: m.transcription ?? m.content,
   }));
 
-  // Detect loop — similar responses OR order confirmation repeated
   const recentBotMsgs = allHistory.filter(m => m.role === 'assistant').slice(-3).map(m => m.content);
   const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9؀-ۿ]/g, '').slice(0, 50);
+
+  // Detect exact loop — bot repeating the same reply
   const isExactLoop = recentBotMsgs.length >= 2 &&
     recentBotMsgs.slice(-2).every(m => normalize(m) === normalize(recentBotMsgs[recentBotMsgs.length - 1] ?? ''));
-  // Also detect order confirmation loop — bot keeps saying "order place ho gaya"
-  const ORDER_CONFIRM_PHRASES = ['order place ho gaya', 'order successfully place', 'order capture ho gaya', 'hamari team aap se'];
-  const isOrderLoop = recentBotMsgs.length >= 2 &&
-    recentBotMsgs.slice(-2).every(m => ORDER_CONFIRM_PHRASES.some(p => m.toLowerCase().includes(p)));
-  const isStuckInLoop = isExactLoop || isOrderLoop;
+
+  // Detect if the LAST bot message was an order/booking confirmation. After a confirmation,
+  // the conversation is logically "done" — start the next message fresh so the bot doesn't
+  // keep echoing the confirmation for unrelated questions (pizza, abuse, new product, etc.)
+  const CONFIRM_PHRASES = [
+    'order place ho gaya', 'order successfully place', 'order capture', 'order confirm ho',
+    'order ho gaya', 'booking ho gaya', 'booking confirm', 'appointment confirm', 'registration ho gaya',
+    'team aap se', 'team aapse', 'raabta karega', 'raabta kareng', 'rabta karega', 'rabta kareng',
+    '24 ghanton', '24 hours', 'agent jald', 'agent aap se',
+  ];
+  const lastBot = recentBotMsgs[recentBotMsgs.length - 1] ?? '';
+  const afterConfirmation = CONFIRM_PHRASES.some(p => lastBot.toLowerCase().includes(p));
+
+  const isStuckInLoop = isExactLoop || afterConfirmation;
   if (isStuckInLoop) {
-    console.warn(`[Webhook] ⚠️ Bot stuck in loop — clearing history`);
+    console.warn(`[Webhook] ⚠️ Loop/post-confirmation — clearing history for fresh context`);
   }
 
-  // If message is a greeting or very short — pass ONLY the current message to AI
-  // This prevents AI from continuing previous product/topic discussion on a fresh greeting
-  const IS_GREETING = /^(hi+|hello|hey|salam|salaam|assalam|wa alaikum|hii+|helo|aoa|ji\b|okay|ok\b|thanks|bye|👋|😊|🙏)/i;
-  const isNewGreeting = IS_GREETING.test(textContent.trim()) || textContent.trim().length < 10;
+  // Greeting = ONLY actual greeting words (not any short message). A short answer like "Dubai"
+  // or "yes" mid-order must KEEP context — only true greetings reset the conversation.
+  const IS_GREETING = /^(hi+|hello+|hey+|salam|salaam|assalam[ou]?[- ]?o?[- ]?alaikum|assalamualaikum|asalam|wa[- ]?alaikum|hii+|helo+|hlo|aoa|namaste|namaskar|salaam|thanks|thank you|bye|goodbye)[\s!.,]*$/i;
+  const isNewGreeting = IS_GREETING.test(textContent.trim());
   const messageHistory = (isNewGreeting || isStuckInLoop)
     ? [{ role: 'user' as const, content: textContent }]
     : allHistory;
