@@ -279,19 +279,26 @@ async function processMessage(
     content: m.transcription ?? m.content,
   }));
 
-  // SAFETY NET ONLY: if the bot's last 2 replies are near-identical, it is stuck in a repeat
-  // loop. Drop the repeated assistant turns so GPT breaks out and responds fresh to the new
-  // message. This does NOT wipe the whole conversation — it only removes the stuck echoes.
+  // SAFETY NET: detect if the bot has been repeating itself. Check the last 3 bot replies —
+  // if any 2 of them are near-identical, the bot is stuck. To break out we (a) keep only the
+  // current user message, and (b) inject an explicit instruction telling GPT NOT to reuse its
+  // previous wording. Resending the same context alone isn't enough — greetings re-generate
+  // the same line — so we force variation with a directive turn.
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9؀-ۿ]/g, '').slice(0, 60);
-  const botTurns = fullHistory.filter(m => m.role === 'assistant');
-  const last2 = botTurns.slice(-2).map(m => norm(m.content));
-  const isRepeatLoop = last2.length === 2 && last2[0] === last2[1] && last2[0].length > 0;
+  const botTurns = fullHistory.filter(m => m.role === 'assistant').map(m => norm(m.content));
+  const last3 = botTurns.slice(-3);
+  const lastReply = last3[last3.length - 1] ?? '';
+  const repeatCount = last3.filter(b => b === lastReply && b.length > 0).length;
+  const isRepeatLoop = repeatCount >= 2;
 
   let messageHistory = fullHistory;
   if (isRepeatLoop) {
-    console.warn('[Webhook] ⚠️ Repeat loop detected — sending only the current message to break out');
-    // Send just the latest user message so GPT answers it fresh, free of the stuck echo
-    messageHistory = [{ role: 'user' as const, content: textContent }];
+    console.warn('[Webhook] ⚠️ Repeat loop detected — forcing fresh varied response');
+    // Keep only the current message + a bracketed directive so GPT varies its wording and
+    // does not re-greet. Bracketed note is an instruction, GPT won't echo it to the customer.
+    messageHistory = [
+      { role: 'user' as const, content: `${textContent}\n\n[Note: You have already greeted this customer. Do not greet again. Answer this message directly, briefly, and with fresh wording.]` },
+    ];
   }
 
   // Get agents and social links for context
