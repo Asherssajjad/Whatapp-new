@@ -272,46 +272,14 @@ async function processMessage(
     take: 20,
   });
 
-  const allHistory = history.map(m => ({
+  // Give the AI the REAL conversation — exactly like the API test that scored 100%.
+  // No clever history-wiping. The current user message is ALWAYS the last message in the
+  // array (it was just saved above), so the AI focuses on it while seeing full context.
+  // The system prompt already instructs the AI how to handle greetings, post-order, etc.
+  const messageHistory = history.map(m => ({
     role: (m.isFromBot ? 'assistant' : 'user') as 'user' | 'assistant',
     content: m.transcription ?? m.content,
   }));
-
-  const recentBotMsgs = allHistory.filter(m => m.role === 'assistant').slice(-3).map(m => m.content);
-  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9؀-ۿ]/g, '').slice(0, 50);
-
-  // Detect exact loop — bot repeating the same reply
-  const isExactLoop = recentBotMsgs.length >= 2 &&
-    recentBotMsgs.slice(-2).every(m => normalize(m) === normalize(recentBotMsgs[recentBotMsgs.length - 1] ?? ''));
-
-  // Detect if the LAST bot message was an order/booking confirmation. After a confirmation,
-  // the conversation is logically "done" — start the next message fresh so the bot doesn't
-  // keep echoing the confirmation for unrelated questions (pizza, abuse, new product, etc.)
-  const CONFIRM_PHRASES = [
-    'order place ho gaya', 'order successfully place', 'order capture', 'order confirm ho',
-    'order ho gaya', 'booking ho gaya', 'booking confirm', 'appointment confirm', 'registration ho gaya',
-    'team aap se', 'team aapse', 'raabta karega', 'raabta kareng', 'rabta karega', 'rabta kareng',
-    '24 ghanton', '24 hours', 'agent jald', 'agent aap se',
-  ];
-  const lastBot = recentBotMsgs[recentBotMsgs.length - 1] ?? '';
-  const afterConfirmation = CONFIRM_PHRASES.some(p => lastBot.toLowerCase().includes(p));
-
-  const isStuckInLoop = isExactLoop || afterConfirmation;
-  if (isStuckInLoop) {
-    console.warn(`[Webhook] ⚠️ Loop/post-confirmation — clearing history for fresh context`);
-  }
-
-  // Greeting = ONLY actual greeting words (not any short message). A short answer like "Dubai"
-  // or "yes" mid-order must KEEP context — only true greetings reset the conversation.
-  const IS_GREETING = /^(hi+|hello+|hey+|salam|salaam|assalam[ou]?[- ]?o?[- ]?alaikum|assalamualaikum|asalam|wa[- ]?alaikum|hii+|helo+|hlo|aoa|namaste|namaskar|salaam|thanks|thank you|bye|goodbye)[\s!.,]*$/i;
-  const isNewGreeting = IS_GREETING.test(textContent.trim());
-  const messageHistory = (isNewGreeting || isStuckInLoop)
-    ? [{ role: 'user' as const, content: textContent }]
-    : allHistory;
-
-  if (isNewGreeting) {
-    console.log(`[Webhook] 🔄 Greeting detected — fresh context for: "${textContent.trim()}"`);
-  }
 
   // Get agents and social links for context
   const agents = await prisma.agent.findMany({ where: { organizationId } });
