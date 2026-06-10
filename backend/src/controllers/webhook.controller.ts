@@ -272,14 +272,27 @@ async function processMessage(
     take: 20,
   });
 
-  // Give the AI the REAL conversation — exactly like the API test that scored 100%.
-  // No clever history-wiping. The current user message is ALWAYS the last message in the
-  // array (it was just saved above), so the AI focuses on it while seeing full context.
-  // The system prompt already instructs the AI how to handle greetings, post-order, etc.
-  const messageHistory = history.map(m => ({
+  // Give the AI the REAL conversation — like the API test. The current user message is the
+  // last item, so the AI focuses on it while seeing full context.
+  const fullHistory = history.map(m => ({
     role: (m.isFromBot ? 'assistant' : 'user') as 'user' | 'assistant',
     content: m.transcription ?? m.content,
   }));
+
+  // SAFETY NET ONLY: if the bot's last 2 replies are near-identical, it is stuck in a repeat
+  // loop. Drop the repeated assistant turns so GPT breaks out and responds fresh to the new
+  // message. This does NOT wipe the whole conversation — it only removes the stuck echoes.
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9؀-ۿ]/g, '').slice(0, 60);
+  const botTurns = fullHistory.filter(m => m.role === 'assistant');
+  const last2 = botTurns.slice(-2).map(m => norm(m.content));
+  const isRepeatLoop = last2.length === 2 && last2[0] === last2[1] && last2[0].length > 0;
+
+  let messageHistory = fullHistory;
+  if (isRepeatLoop) {
+    console.warn('[Webhook] ⚠️ Repeat loop detected — sending only the current message to break out');
+    // Send just the latest user message so GPT answers it fresh, free of the stuck echo
+    messageHistory = [{ role: 'user' as const, content: textContent }];
+  }
 
   // Get agents and social links for context
   const agents = await prisma.agent.findMany({ where: { organizationId } });
