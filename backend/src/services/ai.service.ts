@@ -217,15 +217,14 @@ CONVERSATION FLOW — VERY IMPORTANT:
 
 ${isEcom
 ? `PLACING AN ORDER:
-You need to collect 5 things to place an order: product (with variant/color), full name, phone, delivery address, city.
-Ask for ONE missing detail per message. Keep a running memory of what the customer has ALREADY given.
+To place an order you need just 4 things: PRODUCT, NAME, PHONE, ADDRESS. Color/variant is OPTIONAL — only ask for color if the customer hasn't mentioned a product or you genuinely need it; otherwise skip it. The city is usually inside the address, so do NOT ask for city separately.
 
-IMPORTANT — accept info in any order:
-- If the customer gives a detail you did not ask for yet (e.g. you asked for color but they gave their name), ACCEPT and remember it, then ask for the next missing detail. Never ignore information the customer provides.
+Ask for ONE missing detail per message. Track what you ALREADY have.
 - "same number" / "ye wala" / "yehi number" → use their WhatsApp number: ${ctx.contactPhone}.
-- The delivery address often already contains the city. If the address includes the city, do NOT ask for city again — you already have it.
+- If the customer gives a detail out of order, accept it and ask for the next missing one. NEVER re-ask for something already given.
+- NEVER refuse an order based on the customer's city/country. Accept any delivery address. Do NOT say "we only deliver in UAE" — just take the order; the team handles delivery.
 
-WHEN TO PLACE: The moment you have all 5 (product, name, phone, address, city) → call capture_order tool IMMEDIATELY in that same turn. Do not ask another question. Do not say "confirm?" first. Just call the tool.
+WHEN TO PLACE: As soon as you have PRODUCT + NAME + PHONE + ADDRESS → call the capture_order tool IMMEDIATELY in that same turn. Do not ask for color, do not ask for city, do not ask "confirm?". Just call the tool right away.
 
 AFTER PLACING: Confirm once. Then STOP mentioning the order. Treat the customer's next message as a brand-new request and answer it on its own.`
 : `BOOKING A SERVICE:
