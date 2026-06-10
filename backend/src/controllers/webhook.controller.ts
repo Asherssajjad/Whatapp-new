@@ -254,8 +254,10 @@ async function processMessage(
     },
   });
 
-  // Skip AI if disabled, escalated, or message limit reached
-  if (!contact.aiEnabled || contact.isEscalated || contact.status === 'ESCALATED') return;
+  // Skip AI ONLY if a human manually disabled it (via dashboard toggle) or limit reached.
+  // Escalation does NOT stop the AI — customer must never be left waiting. The human agent
+  // takes over by clicking the AI toggle in the dashboard, which sets aiEnabled=false.
+  if (!contact.aiEnabled) return;
   if (organization.messageCount >= organization.messageLimit) return;
 
   // Check keyword automations
@@ -299,14 +301,6 @@ async function processMessage(
 
   if (isNewGreeting) {
     console.log(`[Webhook] 🔄 Greeting detected — fresh context for: "${textContent.trim()}"`);
-    // Auto re-enable AI on fresh greeting so customer always gets a reply
-    if (!contact.aiEnabled) {
-      await prisma.contact.update({
-        where: { id: contact.id },
-        data: { aiEnabled: true, isEscalated: false, status: 'ACTIVE' },
-      });
-      contact = { ...contact, aiEnabled: true, isEscalated: false, status: 'ACTIVE' as const };
-    }
   }
 
   // Get agents and social links for context
