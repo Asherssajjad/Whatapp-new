@@ -8,6 +8,25 @@ import { runAutomations } from '../services/automation.service';
 import { getIO } from '../services/socket.service';
 import type { WAWebhookPayload, WAIncomingMessage, WAContact } from '../types';
 
+// ─── Per-contact serialization queue ─────────────────────────────────────────────
+// WhatsApp/Meta can deliver several messages from the same customer almost simultaneously
+// (e.g. they tap "Hello" 5 times). Without serialization, each spawns a parallel AI call
+// that reads the SAME stale history before any reply is saved — producing identical/wrong
+// replies and breaking loop detection. This queue forces one-at-a-time processing per phone,
+// so every message sees the previous reply already saved in history.
+const contactQueues = new Map<string, Promise<void>>();
+
+function enqueueForContact(phone: string, task: () => Promise<void>): Promise<void> {
+  const prev = contactQueues.get(phone) ?? Promise.resolve();
+  const next = prev.catch(() => undefined).then(task);
+  contactQueues.set(phone, next);
+  // Clean up the map entry once this is the last task in the chain
+  void next.finally(() => {
+    if (contactQueues.get(phone) === next) contactQueues.delete(phone);
+  });
+  return next;
+}
+
 export async function verifyWebhook(req: Request, res: Response): Promise<void> {
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
@@ -46,7 +65,8 @@ export async function handleIncomingMessage(req: Request, res: Response): Promis
         console.log(`[Webhook] phone_number_id="${phoneNumberId}" msgs=${messages.length}`);
 
         for (const msg of messages) {
-          await processMessage(msg, contacts, phoneNumberId);
+          // Serialize per sender so rapid-fire messages process one at a time, in order.
+          void enqueueForContact(msg.from, () => processMessage(msg, contacts, phoneNumberId));
         }
       }
     }
@@ -111,6 +131,13 @@ async function processMessage(
 
   const { organizationId, organization } = waNumber;
   const waService = createWAService(waNumber);
+
+  // Deduplicate — Meta may retry-deliver the same message ID. If we've already saved it, skip.
+  const alreadyProcessed = await prisma.message.findUnique({ where: { metaMessageId: msg.id } });
+  if (alreadyProcessed) {
+    console.log(`[Webhook] ⏭️  Duplicate message ${msg.id} — skipping`);
+    return;
+  }
 
   // Mark as read
   await waService.markAsRead(msg.id);
